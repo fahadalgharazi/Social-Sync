@@ -1,6 +1,8 @@
 import { ticketmasterHttp } from '../config/http.js';
+import ngeohash from 'ngeohash';
+import { zipToLatLng } from './geo.service.js';
 
-// simple mapping for now; customize later
+const RADII_MI = [15, 30, 60, 120, 250];
 const KEYWORDS = {
   'Reactive Idealist': 'Music',
   'Balanced Realist': 'Music',
@@ -8,38 +10,43 @@ const KEYWORDS = {
   'Secure Optimist': 'Music',
 };
 
-const RADII_MI = [15, 30, 60, 120, 250];
-
 export async function search({ personalityType, zip, limit = 20 }) {
-  const keyword = KEYWORDS[personalityType] || KEYWORDS['Balanced Realist'];
+  const keyword = KEYWORDS[personalityType] || 'Music';
 
+  // Convert ZIP -> geohash (precision 6 ≈ ~1km)
+  const { lat, lng } = await zipToLatLng(zip);
+  const geoPoint = ngeohash.encode(lat, lng, 6);
+
+  // Try widening radius
   for (const radius of RADII_MI) {
     try {
       const { data } = await ticketmasterHttp.get('/events.json', {
         params: {
-          postalCode: zip,       // use ZIP (no hard-coded city)
-          radius,
+          geoPoint,            // ← geohash
+          radius,              // ← miles
           unit: 'miles',
           keyword,
           size: limit,
           sort: 'date,asc',
           locale: '*',
+          countryCode: 'US',   // helps scope results
         },
       });
       const items = data?._embedded?.events ?? [];
       if (items.length) return items.map(normalize);
-    } catch (err) {
-      console.error(`Ticketmaster search (radius ${radius}) failed:`, err?.message || err);
+    } catch (e) {
+      console.error(`TM search radius=${radius} failed:`, e?.message || e);
     }
   }
 
-  // fallback: virtual/online
+  // Fallback: virtual/online
   try {
     const { data } = await ticketmasterHttp.get('/events.json', {
       params: { keyword: 'virtual|online', size: limit, sort: 'date,asc', locale: '*' },
     });
     return (data?._embedded?.events ?? []).map(normalize);
-  } catch {
+  } catch (e) {
+    console.error('TM virtual fallback error:', e?.message || e);
     return [];
   }
 }
