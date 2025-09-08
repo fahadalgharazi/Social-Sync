@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signIn } from "../features/auth/api/authApi";
+import { login } from "../features/auth/api/authApi";
 
 export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -9,7 +9,7 @@ export default function LoginPage() {
 
   async function submit(e) {
     e.preventDefault();
-    const { error } = await signIn(form);
+    const { error } = await login(form.email, form.password);
     if (error) return setError(error.message || "Login failed");
     nav("/events");
   }

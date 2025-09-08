@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import cookieParser from 'cookie-parser';
 import { FRONTEND_URL } from './config/config.js';  
 import routes from './routes/index.js';
 import errorHandler from './middlewares/errorHandler.js';
@@ -14,7 +15,9 @@ app.use(cors({
   origin: FRONTEND_URL,
   credentials: true,
 }));
+app.use(cookieParser());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

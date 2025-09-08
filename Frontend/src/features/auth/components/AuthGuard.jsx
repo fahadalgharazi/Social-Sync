@@ -1,21 +1,18 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { getSessionUser, onAuth } from "../api/authApi";
+import { me } from "../api/authApi";
 
 export default function AuthGuard({ children }) {
-  const [user, setUser] = useState(undefined); // undefined while loading
+  const [state, setState] = useState({ loading: true, user: null });
 
   useEffect(() => {
     let cancel = false;
-    (async () => {
-      const u = await getSessionUser();
-      if (!cancel) setUser(u ?? null);
-    })();
-    const off = onAuth(u => setUser(u ?? null));
-    return () => { cancel = true; off?.(); };
+    me().then(u => !cancel && setState({ loading: false, user: u }))
+        .catch(() => !cancel && setState({ loading: false, user: null }));
+    return () => { cancel = true; };
   }, []);
 
-  if (user === undefined) return null; // or spinner
-  if (!user) return <Navigate to="/login" replace />;
+  if (state.loading) return null; // or a spinner
+  if (!state.user) return <Navigate to="/login" replace />;
   return children;
 }

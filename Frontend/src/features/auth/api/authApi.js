@@ -1,21 +1,13 @@
-import { supabase } from "../../../lib/supabase";
+import { http } from "../../../lib/http";
 
-export async function signIn({ email, password }) {
-  return await supabase.auth.signInWithPassword({ email, password });
-}
+export const login = (email, password) =>
+  http.post("/auth/login", { email, password }).then(r => r.data);
 
-export async function signUp({ email, password }) {
-  return await supabase.auth.signUp({ email, password });
-}
+export const signup = (payload) =>
+  http.post("/auth/signup", payload).then(r => r.data);
 
-export async function getSessionUser() {
-  const { data } = await supabase.auth.getSession();
-  return data.session?.user ?? null;
-}
+export const logout = () =>
+  http.post("/auth/logout").then(r => r.data);
 
-export function onAuth(cb) {
-  const { data } = supabase.auth.onAuthStateChange((_e, session) => {
-    cb(session?.user ?? null);
-  });
-  return () => data.subscription?.unsubscribe?.();
-}
+export const me = () =>
+  http.get("/auth/me").then(r => r.data.user);
