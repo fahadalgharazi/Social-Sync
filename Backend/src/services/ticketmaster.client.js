@@ -1,63 +1,51 @@
-// Backend/src/services/ticketmaster.client.js
+// src/services/ticketmaster.client.js
 import { ticketmasterHttp } from '../config/http.js';
+import { buildKeywordPipes } from '../services/recommendation/buildKeywords.js';
 
 const RADII_MI = [15, 30, 60, 120, 250];
-const KEYWORDS = {
-  'Reactive Idealist': 'Music',
-  'Balanced Realist': 'Music',
-  'Sensitive Companion': 'Music',
-  'Secure Optimist': 'Music',
-};
 
-export async function search({ personalityType, geoPoint, limit = 20, page = 0 }) {
-  const keyword = KEYWORDS[personalityType] || 'Music';
+export async function search({ personalityType, geoPoint, limit = 20, page = 0, z }) {
+  const { primary, secondary } = buildKeywordPipes({ personalityType, z });
 
-  // Try widening radius until we get events
   for (const radius of RADII_MI) {
-    try {
-      const { data } = await ticketmasterHttp.get('/events.json', {
-        params: {
-          geoPoint,            // use stored geohash directly
-          radius,              // miles
-          unit: 'miles',
-          keyword,
-          size: limit,
-          page,
-          sort: 'date,asc',
-          locale: '*',
-          countryCode: 'US',
-        },
-      });
+    // 1) primary
+    const r1 = await tmQuery({ geoPoint, radius, limit, page, keyword: primary });
+    if (r1.items.length) return r1;
 
-      const items = data?._embedded?.events ?? [];
-      if (items.length) {
-        return {
-          items: items.map(normalize),
-          page: data.page?.number ?? page,
-          totalPages: data.page?.totalPages ?? 1,
-          total: data.page?.totalElements ?? items.length,
-        };
-      }
-    } catch (e) {
-      console.error(`TM search radius=${radius} failed:`, e?.message || e);
-    }
+    // 2) secondary
+    const r2 = await tmQuery({ geoPoint, radius, limit, page, keyword: secondary });
+    if (r2.items.length) return r2;
   }
 
-  // Fallback: virtual/online
+  // 3) virtual fallback
+  return await tmQuery({ geoPoint: undefined, radius: undefined, limit, page, keyword: "virtual|online" });
+}
+
+async function tmQuery({ geoPoint, radius, limit, page, keyword }) {
   try {
-    const { data } = await ticketmasterHttp.get('/events.json', {
-      params: { keyword: 'virtual|online', size: limit, sort: 'date,asc', locale: '*', page },
-    });
+    const params = {
+      keyword,
+      size: limit,
+      page,
+      sort: 'date,asc',
+      locale: '*',
+      countryCode: 'US',
+    };
+    if (geoPoint) params.geoPoint = geoPoint;
+    if (radius) { params.radius = radius; params.unit = 'miles'; }
+
+    const { data } = await ticketmasterHttp.get('/events.json', { params });
     const items = data?._embedded?.events ?? [];
     return {
       items: items.map(normalize),
-      page: data.page?.number ?? page,
-      totalPages: data.page?.totalPages ?? 1,
-      total: data.page?.totalElements ?? items.length,
+      page: data?.page?.number ?? page,
+      totalPages: data?.page?.totalPages ?? 1,
+      total: data?.page?.totalElements ?? items.length,
+      tried: { keyword, radius },
     };
   } catch (e) {
-    console.error('TM virtual fallback error:', e?.message || e);
-    return { items: [], page: 0, totalPages: 0, total: 0 };
+    // don't blow up the whole search; just return empty for this attempt
+    return { items: [], page, totalPages: 0, total: 0, tried: { keyword, radius }, error: e?.message };
   }
 }
 

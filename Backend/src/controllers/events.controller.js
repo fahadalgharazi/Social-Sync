@@ -1,11 +1,12 @@
+// Backend/src/controllers/events.controller.js
 import * as EventsService from '../services/events.service.js';
 
 export async function search(req, res, next) {
   try {
-    const userId = req.user.id; // set by auth middleware
+    const userId = req.user.id; // from auth middleware
     const { personalityType, limit = 20, page = 0 } = req.body || {};
 
-    const { items, page: currentPage, totalPages, total } =
+    const { items, page: currentPage, totalPages, total, personalityType: resolvedType } =
       await EventsService.search({ userId, personalityType, limit, page });
 
     res.json({
@@ -18,7 +19,7 @@ export async function search(req, res, next) {
         limit,
       },
       meta: {
-        personalityType: personalityType ?? null,
+        personalityType: resolvedType,
         timestamp: new Date().toISOString(),
       },
     });

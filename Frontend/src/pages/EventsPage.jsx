@@ -1,55 +1,61 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
-import { searchEvents } from "../features/events/api/eventsApi";
+import { searchEvents, getMe } from "../features/events/api/eventsApi";
 import EventCard from "../features/events/components/EventCard";
 
 export default function EventsPage() {
+  const [items, setItems] = useState([]);
+  const [pagination, setPagination] = useState({ page: 0, totalPages: 0, total: 0, limit: 20 });
   const [personality, setPersonality] = useState(null);
-  const [zip, setZip] = useState("");
-  const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
+  async function load(page = 0) {
+    setLoading(true);
+    setErr("");
+    try {
+      // Optional: show the logged-in user (verifies cookie session)
+      await getMe().catch(() => null);
+
+      const { items, pagination, meta } = await searchEvents({ personalityType: personality, page, limit: 20 });
+      setItems(items);
+      setPagination(pagination);
+      if (meta?.personalityType) setPersonality(meta.personalityType);
+    } catch (e) {
+      setErr(e?.response?.data?.message || e?.message || "Failed to load events");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
-    let cancel = false;
-    (async () => {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-
-        // get city (or zip when you add it) from user_data, like your current profile page
-        const { data: ud } = await supabase.from("user_data").select("city").eq("id", user.id).single();
-        if (ud?.city) setZip(String(ud.city).trim()); // currently storing city; later switch to a zip column
-
-        // get personality
-        const { data: up } = await supabase.from("user_personality_data").select("*").eq("id", user.id).single();
-        if (up?.personality_type) setPersonality(up.personality_type);
-
-        if (up?.personality_type && ud?.city) {
-          const data = await searchEvents({ personalityType: up.personality_type, zip: String(ud.city).trim(), limit: 25 });
-          if (!cancel) setEvents(data);
-        }
-      } catch (e) {
-        if (!cancel) setErr(e.message || "Failed to load events");
-      } finally {
-        if (!cancel) setLoading(false);
-      }
-    })();
-    return () => { cancel = true; };
+    load(0);
   }, []);
+
+  const canPrev = pagination.page > 0;
+  const canNext = pagination.page + 1 < pagination.totalPages;
 
   if (loading) return <main style={{ padding: 24 }}>Loading…</main>;
   if (err) return <main style={{ padding: 24 }}>Error: {err}</main>;
 
   return (
     <main style={{ padding: 24 }}>
-      <h1>Events near {zip || "you"}</h1>
-      <p>Cluster: {personality}</p>
-      {events.length === 0 ? (
-        <p>No matching local events (we widen radius and show virtual as fallback).</p>
+      <header style={{ marginBottom: 16 }}>
+        <h1>Events near you</h1>
+        <p>Personality cluster: {personality || "—"}</p>
+        <p>
+          Page {pagination.page + 1} of {Math.max(pagination.totalPages, 1)} • {pagination.total} total
+        </p>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button disabled={!canPrev} onClick={() => load(pagination.page - 1)}>Prev</button>
+          <button disabled={!canNext} onClick={() => load(pagination.page + 1)}>Next</button>
+        </div>
+      </header>
+
+      {items.length === 0 ? (
+        <p>No matching local events yet — we widen radius and fall back to virtual if needed.</p>
       ) : (
         <div style={{ display: "grid", gap: 16, gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))" }}>
-          {events.map(e => <EventCard key={e.id} event={e} />)}
+          {items.map((e) => <EventCard key={e.id} event={e} />)}
         </div>
       )}
     </main>
