@@ -23,7 +23,7 @@ export default function Navbar({ variant = 'dashboard' }) {
                   <Heart className="w-7 h-7 text-white" />
                 </div>
                 <span className="hidden md:block text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                  SocialApp
+                  SocialSync
                 </span>
               </div>
 
@@ -105,11 +105,11 @@ export default function Navbar({ variant = 'dashboard' }) {
             {/* Logo */}
             <Link to={"/"}>
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                <Heart className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+                <Heart className="w-9 h-9 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                SocialApp
+              <span className="text-2xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                SocialSync
               </span>
             </div>
             </Link>
@@ -117,14 +117,14 @@ export default function Navbar({ variant = 'dashboard' }) {
             {/* Center Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               <Link to={"/events"}>
-                <Button variant="ghost" className="text-gray-700 hover:text-indigo-700 hover:bg-indigo-50/50 ">
-                  <CalendarSearch className="w-4 h-4 mr-2" />
+                <Button variant="ghost" className="text-xl text-gray-700 hover:text-indigo-700 hover:bg-indigo-50/50 [&>svg]:!size-7">
+                  <CalendarSearch className="w-6 h-6 mr-2" />
                   Events
                 </Button>
               </Link>
               <Link to={"/questionnaire"}>
-                <Button variant="ghost" className="text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/50">
-                  <FileText className="w-4 h-4 mr-2" />
+                <Button variant="ghost" className="text-xl text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/50 [&>svg]:!size-7">
+                  <FileText className="w-6 h-6 mr-2" />
                   Questionnaire
                 </Button>
               </Link>

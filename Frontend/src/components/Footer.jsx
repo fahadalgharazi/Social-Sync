@@ -4,14 +4,14 @@ import { Heart } from 'lucide-react';
 export default function Footer() {
   return (
     <footer className="bg-white/50 backdrop-blur-sm border-t border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center space-x-2 mb-4">
               <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <Heart className="w-6 h-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-gray-800">SocialApp</span>
+              <span className="text-xl font-bold text-gray-800">SocialSync</span>
             </div>
             <p className="text-gray-600 text-sm leading-relaxed">
               Building connections and creating memorable experiences for communities everywhere.
@@ -50,7 +50,7 @@ export default function Footer() {
         </div>
         
         <div className="border-t border-gray-200 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-gray-500">© 2025 SocialApp. All rights reserved.</p>
+          <p className="text-sm text-gray-500">© 2025 SocialSync. All rights reserved.</p>
           <div className="flex space-x-6 mt-4 md:mt-0">
             <button className="text-gray-400 hover:text-gray-600 transition-colors">
               <span className="sr-only">Twitter</span>
