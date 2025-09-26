@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { UserPlus, FileText, Calendar, Users, Plus, Heart, Home, LogIn, User, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Link } from "react-router-dom";
 
 
 
@@ -30,14 +31,18 @@ export default function LandingPage() {
               and create unforgettable experiences together.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-lg px-8 py-6 rounded-xl shadow-xl hover:shadow-2xl transform transition-all duration-200 hover:scale-105">
-                <UserPlus className="w-5 h-5 mr-2" />
-                Get Started Free
-              </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6 rounded-xl border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
-                <FileText className="w-5 h-5 mr-2" />
-                Take Questionnaire
-              </Button>
+              <Link to={"/signup"}>
+                <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-lg px-8 py-6 rounded-xl shadow-xl hover:shadow-2xl transform transition-all duration-200 hover:scale-105">
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  Create an Account
+                </Button>
+              </Link>
+              <Link to={"/questionnaire"}>
+                <Button variant="outline" size="lg" className="text-lg px-8 py-6 rounded-xl border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+                  <FileText className="w-5 h-5 mr-2" />
+                  Take Questionnaire
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
