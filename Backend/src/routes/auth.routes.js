@@ -17,7 +17,6 @@ async function zipToLatLng(zip) {
   return { lat, lng, city: p['place name'], state: p['state abbreviation'] };
 }
 
-// src/routes/auth.routes.js
 router.post('/signup', async (req, res, next) => {
   try {
     const {
@@ -25,8 +24,8 @@ router.post('/signup', async (req, res, next) => {
       firstName, lastName, gender, bio, interests, zip
     } = req.body || {};
 
-    // 0) basic validation (client does light checks; server is source of truth)
-    if (!email || !password || !username || !firstName || !lastName || !zip) {
+    console.log(req.body)
+    if (!email || !password || !firstName || !lastName || !zip) {
       return next({ status: 400, message: 'Missing required fields' });
     }
     const emailNorm = String(email).trim().toLowerCase();
@@ -39,13 +38,12 @@ router.post('/signup', async (req, res, next) => {
     const { data: auth, error: aerr } = await supabaseAnon.auth.signUp({ email: emailNorm, password });
     if (aerr) {
       console.error('[SIGNUP] supabase signUp error:', aerr);
-      // common messages: "User already registered", "Password should be at least …"
       return next({ status: 400, message: aerr.message || 'Sign up failed' });
     }
     const user = auth.user;
     if (!user?.id) return next({ status: 500, message: 'No user returned from auth' });
 
-    // 2) ZIP -> coords + geohash
+    //ZIP -> coords + geohash
     let lat, lng, city, state, geohash;
     try {
       const r = await fetch(`https://api.zippopotam.us/us/${zipNorm}`);
@@ -115,7 +113,6 @@ router.post('/signup', async (req, res, next) => {
 // --- LOGIN ---
 router.post('/login', async (req, res, next) => {
   try {
-    // in /auth/login
 console.log('[LOGIN] body:', { email: req.body?.email, hasPwd: !!req.body?.password });
 
     const { email, password } = req.body;
