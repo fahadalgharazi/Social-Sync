@@ -117,13 +117,13 @@ export default function Navbar({ variant = 'dashboard' }) {
             {/* Center Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               <Link to={"/events"}>
-                <Button variant="ghost" className="text-xl text-gray-700 hover:text-indigo-700 hover:bg-indigo-50/50 [&>svg]:!size-7">
+                <Button variant="ghost" className="text-base text-gray-700 hover:text-indigo-700 hover:bg-indigo-50/50 [&>svg]:!size-7">
                   <CalendarSearch className="w-6 h-6 mr-2" />
                   Events
                 </Button>
               </Link>
               <Link to={"/questionnaire"}>
-                <Button variant="ghost" className="text-xl text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/50 [&>svg]:!size-7">
+                <Button variant="ghost" className="text-base text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/50 [&>svg]:!size-7">
                   <FileText className="w-6 h-6 mr-2" />
                   Questionnaire
                 </Button>

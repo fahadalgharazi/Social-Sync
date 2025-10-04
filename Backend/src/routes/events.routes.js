@@ -3,8 +3,6 @@ import * as EventsController from '../controllers/events.controller.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
 
 const router = Router();
-
-// You can keep your inline validator for now:
 // function validateEventRequest(req, res, next) {
 //   const { personalityType, zip } = req.body || {};
 //   if (!personalityType) return res.status(400).json({ error: 'personalityType is required' });
