@@ -20,7 +20,7 @@ async function zipToLatLng(zip) {
 router.post('/signup', async (req, res, next) => {
   try {
     const {
-      email, password, username,
+      email, password,
       firstName, lastName, gender, bio, interests, zip
     } = req.body || {};
 
@@ -73,7 +73,6 @@ router.post('/signup', async (req, res, next) => {
     const { error: uerr } = await supabaseAdmin.from('users').insert([{
       id: user.id,
       email: emailNorm,
-      username: String(username).trim(),
       created_at: now,
     }]);
     if (uerr) {
@@ -85,7 +84,6 @@ router.post('/signup', async (req, res, next) => {
       id: user.id,
       first_name: String(firstName).trim(),
       last_name: String(lastName).trim(),
-      username: String(username).trim(),
       gender: gender || null,
       bio: bio || null,
       city,
