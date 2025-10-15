@@ -111,19 +111,28 @@ router.post('/signup', async (req, res, next) => {
 // --- LOGIN ---
 router.post('/login', async (req, res, next) => {
   try {
-console.log('[LOGIN] body:', { email: req.body?.email, hasPwd: !!req.body?.password });
-
+    console.log('[LOGIN] body:', { email: req.body?.email, hasPwd: !!req.body?.password });
+    
     const { email, password } = req.body;
     const { data, error } = await supabaseAnon.auth.signInWithPassword({ email, password });
     if (error) return next({ status: 401, message: 'Invalid credentials' });
-
+    
     const { access_token, refresh_token, user } = data.session;
-
-    // httpOnly cookies; SameSite=Lax works for localhost:5173 -> 5000
-    const cookieOpts = { httpOnly: true, secure: false, sameSite: 'lax', path: '/' };
+    
+    // ✅ Dynamic cookie options based on environment
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    const cookieOpts = { 
+      httpOnly: true,
+      secure: isProduction,                          // true in prod (HTTPS), false in dev
+      sameSite: isProduction ? 'none' : 'lax',      // 'none' for cross-domain in prod
+      path: '/',
+      maxAge: 3600000                                // 1 hour (optional but recommended)
+    };
+    
     res.cookie('sb_at', access_token, cookieOpts);
     res.cookie('sb_rt', refresh_token, cookieOpts);
-
+    
     res.json({ ok: true, user: { id: user.id, email: user.email } });
   } catch (e) {
     next({ status: 401, message: e.message || 'Login failed' });
