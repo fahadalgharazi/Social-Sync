@@ -1,12 +1,37 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, Mail, Lock, User, MapPin, Heart, ArrowRight, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  MapPin,
+  Heart,
+  ArrowRight,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { signup, login } from "../features/auth/api/authApi";
 
 export default function SignUpPage() {
@@ -31,7 +56,7 @@ export default function SignUpPage() {
 
   // Password strength calculation
   const getPasswordStrength = (password) => {
-    if (!password) return { strength: 0, label: '', color: '' };
+    if (!password) return { strength: 0, label: "", color: "" };
     let strength = 0;
     if (password.length >= 8) strength++;
     if (password.length >= 12) strength++;
@@ -39,9 +64,9 @@ export default function SignUpPage() {
     if (/\d/.test(password)) strength++;
     if (/[^a-zA-Z0-9]/.test(password)) strength++;
 
-    if (strength <= 2) return { strength, label: 'Weak', color: 'bg-red-500' };
-    if (strength <= 3) return { strength, label: 'Medium', color: 'bg-yellow-500' };
-    return { strength, label: 'Strong', color: 'bg-green-500' };
+    if (strength <= 2) return { strength, label: "Weak", color: "bg-red-500" };
+    if (strength <= 3) return { strength, label: "Medium", color: "bg-yellow-500" };
+    return { strength, label: "Strong", color: "bg-green-500" };
   };
 
   const passwordStrength = getPasswordStrength(form.password);
@@ -61,11 +86,16 @@ export default function SignUpPage() {
   };
 
   const isStep1Valid = () => {
-    return form.firstName && form.lastName && 
-           form.email && isValidEmail(form.email) &&
-           form.password && form.confirmPassword && 
-           form.password === form.confirmPassword &&
-           passwordStrength.strength >= 2; // At least medium strength
+    return (
+      form.firstName &&
+      form.lastName &&
+      form.email &&
+      isValidEmail(form.email) &&
+      form.password &&
+      form.confirmPassword &&
+      form.password === form.confirmPassword &&
+      passwordStrength.strength >= 2
+    ); // At least medium strength
   };
 
   const isStep2Valid = () => {
@@ -98,10 +128,7 @@ export default function SignUpPage() {
       nav("/questionnaire");
     } catch (e) {
       const msg =
-        e?.response?.data?.message ||
-        e?.response?.data?.error ||
-        e?.message ||
-        "Sign up failed";
+        e?.response?.data?.message || e?.response?.data?.error || e?.message || "Sign up failed";
       setError(msg);
     } finally {
       setSubmitting(false);
@@ -128,24 +155,37 @@ export default function SignUpPage() {
               Join the Community
             </CardTitle>
             <CardDescription className="text-gray-500">
-              Step {currentStep} of 2: {currentStep === 1 ? 'Account Information' : 'Personal Details'}
+              Step {currentStep} of 2:{" "}
+              {currentStep === 1 ? "Account Information" : "Personal Details"}
             </CardDescription>
           </CardHeader>
 
           {/* Progress Indicator */}
           <div className="px-8">
             <div className="flex items-center justify-center space-x-4 mb-4">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300 ${
-                currentStep >= 1 ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg' : 'bg-gray-200 text-gray-400'
-              }`}>
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300 ${
+                  currentStep >= 1
+                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg"
+                    : "bg-gray-200 text-gray-400"
+                }`}
+              >
                 1
               </div>
-              <div className={`w-16 h-1 rounded transition-all duration-300 ${
-                currentStep >= 2 ? 'bg-gradient-to-r from-indigo-600 to-purple-600' : 'bg-gray-200'
-              }`}></div>
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300 ${
-                currentStep >= 2 ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg' : 'bg-gray-200 text-gray-400'
-              }`}>
+              <div
+                className={`w-16 h-1 rounded transition-all duration-300 ${
+                  currentStep >= 2
+                    ? "bg-gradient-to-r from-indigo-600 to-purple-600"
+                    : "bg-gray-200"
+                }`}
+              ></div>
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300 ${
+                  currentStep >= 2
+                    ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg"
+                    : "bg-gray-200 text-gray-400"
+                }`}
+              >
                 2
               </div>
             </div>
@@ -159,7 +199,9 @@ export default function SignUpPage() {
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">First Name</Label>
+                      <Label htmlFor="firstName" className="text-sm font-medium text-gray-700">
+                        First Name
+                      </Label>
                       <div className="relative">
                         <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                         <Input
@@ -167,7 +209,7 @@ export default function SignUpPage() {
                           type="text"
                           placeholder="John"
                           value={form.firstName}
-                          onChange={(e) => updateForm('firstName', e.target.value)}
+                          onChange={(e) => updateForm("firstName", e.target.value)}
                           className="pl-10 h-11 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                           required
                         />
@@ -175,7 +217,9 @@ export default function SignUpPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">Last Name</Label>
+                      <Label htmlFor="lastName" className="text-sm font-medium text-gray-700">
+                        Last Name
+                      </Label>
                       <div className="relative">
                         <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                         <Input
@@ -183,7 +227,7 @@ export default function SignUpPage() {
                           type="text"
                           placeholder="Doe"
                           value={form.lastName}
-                          onChange={(e) => updateForm('lastName', e.target.value)}
+                          onChange={(e) => updateForm("lastName", e.target.value)}
                           className="pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                           required
                         />
@@ -192,7 +236,9 @@ export default function SignUpPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+                    <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                      Email
+                    </Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
@@ -200,7 +246,7 @@ export default function SignUpPage() {
                         type="email"
                         placeholder="john@example.com"
                         value={form.email}
-                        onChange={(e) => updateForm('email', e.target.value)}
+                        onChange={(e) => updateForm("email", e.target.value)}
                         className="pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                         required
                       />
@@ -214,7 +260,9 @@ export default function SignUpPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+                    <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                      Password
+                    </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
@@ -222,7 +270,7 @@ export default function SignUpPage() {
                         type={showPassword ? "text" : "password"}
                         placeholder="Create a strong password"
                         value={form.password}
-                        onChange={(e) => updateForm('password', e.target.value)}
+                        onChange={(e) => updateForm("password", e.target.value)}
                         className="pl-10 pr-12 h-11 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                         required
                       />
@@ -233,23 +281,31 @@ export default function SignUpPage() {
                         onClick={() => setShowPassword(!showPassword)}
                         className="absolute right-1 top-1 h-10 w-10 text-gray-400 hover:text-gray-600"
                       >
-                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                     {form.password && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 bg-gray-200 rounded-full h-1.5">
-                            <div 
+                            <div
                               className={`h-1.5 rounded-full transition-all duration-300 ${passwordStrength.color}`}
                               style={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
                             ></div>
                           </div>
-                          <span className={`text-xs font-medium ${
-                            passwordStrength.label === 'Weak' ? 'text-red-600' :
-                            passwordStrength.label === 'Medium' ? 'text-yellow-600' :
-                            'text-green-600'
-                          }`}>
+                          <span
+                            className={`text-xs font-medium ${
+                              passwordStrength.label === "Weak"
+                                ? "text-red-600"
+                                : passwordStrength.label === "Medium"
+                                  ? "text-yellow-600"
+                                  : "text-green-600"
+                            }`}
+                          >
                             {passwordStrength.label}
                           </span>
                         </div>
@@ -261,7 +317,9 @@ export default function SignUpPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">Confirm Password</Label>
+                    <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                      Confirm Password
+                    </Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                       <Input
@@ -269,7 +327,7 @@ export default function SignUpPage() {
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm your password"
                         value={form.confirmPassword}
-                        onChange={(e) => updateForm('confirmPassword', e.target.value)}
+                        onChange={(e) => updateForm("confirmPassword", e.target.value)}
                         className="pl-10 pr-12 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                         required
                       />
@@ -280,14 +338,20 @@ export default function SignUpPage() {
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         className="absolute right-1 top-1 h-10 w-10 text-gray-400 hover:text-gray-600"
                       >
-                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-4 w-4" />
+                        ) : (
+                          <Eye className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
 
-                  {form.password && form.confirmPassword && form.password !== form.confirmPassword && (
-                    <p className="text-sm text-red-600">Passwords do not match</p>
-                  )}
+                  {form.password &&
+                    form.confirmPassword &&
+                    form.password !== form.confirmPassword && (
+                      <p className="text-sm text-red-600">Passwords do not match</p>
+                    )}
 
                   <Button
                     type="button"
@@ -304,8 +368,13 @@ export default function SignUpPage() {
                 <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="gender" className="text-sm font-medium text-gray-700">Gender</Label>
-                      <Select value={form.gender} onValueChange={(value) => updateForm('gender', value)}>
+                      <Label htmlFor="gender" className="text-sm font-medium text-gray-700">
+                        Gender
+                      </Label>
+                      <Select
+                        value={form.gender}
+                        onValueChange={(value) => updateForm("gender", value)}
+                      >
                         <SelectTrigger className="h-11 border-gray-200 bg-white/50 backdrop-blur-sm">
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
@@ -319,7 +388,9 @@ export default function SignUpPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="zip" className="text-sm font-medium text-gray-700">ZIP Code</Label>
+                      <Label htmlFor="zip" className="text-sm font-medium text-gray-700">
+                        ZIP Code
+                      </Label>
                       <div className="relative">
                         <MapPin className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                         <Input
@@ -329,7 +400,7 @@ export default function SignUpPage() {
                           placeholder="12345"
                           maxLength={5}
                           value={form.zip}
-                          onChange={(e) => updateForm('zip', e.target.value.replace(/\D/g, ''))}
+                          onChange={(e) => updateForm("zip", e.target.value.replace(/\D/g, ""))}
                           className="pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                           required
                         />
@@ -344,23 +415,27 @@ export default function SignUpPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="bio" className="text-sm font-medium text-gray-700">Bio (Optional)</Label>
+                    <Label htmlFor="bio" className="text-sm font-medium text-gray-700">
+                      Bio (Optional)
+                    </Label>
                     <Textarea
                       id="bio"
                       placeholder="Tell us a bit about yourself..."
                       value={form.bio}
-                      onChange={(e) => updateForm('bio', e.target.value)}
+                      onChange={(e) => updateForm("bio", e.target.value)}
                       className="min-h-16 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="interests" className="text-sm font-medium text-gray-700">Interests (Optional)</Label>
+                    <Label htmlFor="interests" className="text-sm font-medium text-gray-700">
+                      Interests (Optional)
+                    </Label>
                     <Textarea
                       id="interests"
                       placeholder="e.g., hiking, photography, cooking, music"
                       value={form.interests}
-                      onChange={(e) => updateForm('interests', e.target.value)}
+                      onChange={(e) => updateForm("interests", e.target.value)}
                       className="min-h-20 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
                     />
                     <p className="text-xs text-gray-500">Separate interests with commas</p>
@@ -392,7 +467,7 @@ export default function SignUpPage() {
                           Creating Account...
                         </>
                       ) : (
-                        'Create Account'
+                        "Create Account"
                       )}
                     </Button>
                   </div>
@@ -404,10 +479,10 @@ export default function SignUpPage() {
           {/* Footer */}
           <CardFooter className="px-8 py-4 bg-gray-50/50 backdrop-blur-sm border-t border-gray-100">
             <p className="text-center text-sm text-gray-600 w-full">
-              Already have an account?{' '}
+              Already have an account?{" "}
               <Button
                 variant="link"
-                onClick={() => nav('/login')}
+                onClick={() => nav("/login")}
                 className="text-indigo-600 hover:text-indigo-500 p-0 h-auto font-medium"
               >
                 Sign in
@@ -418,10 +493,14 @@ export default function SignUpPage() {
 
         {/* Terms */}
         <p className="mt-6 text-center text-xs text-gray-500">
-          By creating an account, you agree to our{' '}
-          <button className="text-indigo-600 hover:text-indigo-500 transition-colors">Terms of Service</button>
-          {' '}and{' '}
-          <button className="text-indigo-600 hover:text-indigo-500 transition-colors">Privacy Policy</button>
+          By creating an account, you agree to our{" "}
+          <button className="text-indigo-600 hover:text-indigo-500 transition-colors">
+            Terms of Service
+          </button>{" "}
+          and{" "}
+          <button className="text-indigo-600 hover:text-indigo-500 transition-colors">
+            Privacy Policy
+          </button>
         </p>
       </div>
     </div>

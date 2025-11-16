@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { Calendar, MapPin, Users, Filter, ChevronLeft, ChevronRight, Loader2, Heart, Brain } from "lucide-react";
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Filter,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Heart,
+  Brain,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { searchEvents, getMe } from "../features/events/api/eventsApi";
@@ -21,10 +31,10 @@ export default function EventsPage() {
       const userData = await getMe().catch(() => null);
       setUser(userData);
 
-      const { items, pagination, meta } = await searchEvents({ 
-        personalityType: personality, 
-        page, 
-        limit: 20 
+      const { items, pagination, meta } = await searchEvents({
+        personalityType: personality,
+        page,
+        limit: 20,
       });
       setItems(items);
       setPagination(pagination);
@@ -64,7 +74,7 @@ export default function EventsPage() {
             </div>
             <h2 className="text-xl font-bold text-gray-800 mb-2">Unable to Load Events</h2>
             <p className="text-gray-600 mb-4">{err}</p>
-            <Button 
+            <Button
               onClick={() => load(0)}
               className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
             >
@@ -125,7 +135,9 @@ export default function EventsPage() {
               </div>
               <div className="flex items-center space-x-2">
                 <MapPin className="w-4 h-4" />
-                <span>Page {pagination.page + 1} of {Math.max(pagination.totalPages, 1)}</span>
+                <span>
+                  Page {pagination.page + 1} of {Math.max(pagination.totalPages, 1)}
+                </span>
               </div>
             </div>
 
@@ -164,11 +176,10 @@ export default function EventsPage() {
               <div className="w-20 h-20 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Calendar className="w-10 h-10 text-indigo-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-3">
-                No Events Found
-              </h3>
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">No Events Found</h3>
               <p className="text-gray-600 max-w-md mx-auto">
-                We're widening the search radius and including virtual events. Check back soon for personalized recommendations!
+                We're widening the search radius and including virtual events. Check back soon for
+                personalized recommendations!
               </p>
             </CardContent>
           </Card>

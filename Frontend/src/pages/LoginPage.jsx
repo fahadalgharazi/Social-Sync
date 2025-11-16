@@ -1,35 +1,42 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../features/auth/api/authApi';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { login } from "../features/auth/api/authApi";
 
-import { Eye, EyeOff, Mail, Lock, Heart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Eye, EyeOff, Mail, Lock, Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function LoginPage() {
   const nav = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleInputChange = (e) => {
-    setFormData(f => ({ ...f, [e.target.name]: e.target.value }));
+    setFormData((f) => ({ ...f, [e.target.name]: e.target.value }));
   };
 
   async function submit(e) {
     e.preventDefault();
-    setError('');
+    setError("");
     setSubmitting(true);
     try {
       const { error } = await login(formData.email.trim(), formData.password);
-      if (error) return setError(error.message || 'Login failed');
-      nav('/events');
+      if (error) return setError(error.message || "Login failed");
+      nav("/events");
     } catch (err) {
-      setError(err?.message || 'Login failed');
+      setError(err?.message || "Login failed");
     } finally {
       setSubmitting(false);
     }
@@ -62,7 +69,9 @@ export default function LoginPage() {
           <CardContent>
             <form className="space-y-5" onSubmit={submit} noValidate>
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                   <Input
@@ -80,13 +89,15 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  Password
+                </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                   <Input
                     id="password"
                     name="password"
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleInputChange}
@@ -98,9 +109,9 @@ export default function LoginPage() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => setShowPassword(s => !s)}
+                    onClick={() => setShowPassword((s) => !s)}
                     className="absolute right-1 top-1 h-10 w-10 text-gray-400 hover:text-gray-600"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
@@ -110,23 +121,27 @@ export default function LoginPage() {
               <div className="flex items-center justify-between text-sm">
                 <div className="flex items-center space-x-2">
                   <Checkbox id="remember" className="border-gray-300" />
-                  <Label htmlFor="remember" className="text-gray-600 cursor-pointer">Remember me</Label>
+                  <Label htmlFor="remember" className="text-gray-600 cursor-pointer">
+                    Remember me
+                  </Label>
                 </div>
-                <Button type="button" variant="link" className="text-indigo-600 hover:text-indigo-500 p-0 h-auto font-medium">
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-indigo-600 hover:text-indigo-500 p-0 h-auto font-medium"
+                >
                   Forgot password?
                 </Button>
               </div>
 
-              {error && (
-                <p className="text-sm text-red-600">{error}</p>
-              )}
+              {error && <p className="text-sm text-red-600">{error}</p>}
 
               <Button
                 type="submit"
                 disabled={submitting}
                 className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transform transition-all duration-200 hover:scale-[1.02] disabled:opacity-70"
               >
-                {submitting ? 'Signing in…' : 'Sign In'}
+                {submitting ? "Signing in…" : "Sign In"}
               </Button>
 
               <div className="relative">
@@ -142,11 +157,11 @@ export default function LoginPage() {
 
           <CardFooter className="bg-gray-50/50 backdrop-blur-sm border-t border-gray-100">
             <p className="text-center text-sm text-gray-600 w-full">
-              Don&apos;t have an account?{' '}
+              Don&apos;t have an account?{" "}
               <Button
                 type="button"
                 variant="link"
-                onClick={() => nav('/signup')}
+                onClick={() => nav("/signup")}
                 className="text-indigo-600 hover:text-indigo-500 p-0 h-auto font-medium"
               >
                 Sign up
@@ -157,12 +172,18 @@ export default function LoginPage() {
 
         {/* Terms */}
         <p className="mt-6 text-center text-xs text-gray-500">
-          By continuing, you agree to our{' '}
-          <Button variant="link" className="text-indigo-600 hover:text-indigo-500 p-0 h-auto text-xs">
+          By continuing, you agree to our{" "}
+          <Button
+            variant="link"
+            className="text-indigo-600 hover:text-indigo-500 p-0 h-auto text-xs"
+          >
             Terms of Service
-          </Button>
-          {' '}and{' '}
-          <Button variant="link" className="text-indigo-600 hover:text-indigo-500 p-0 h-auto text-xs">
+          </Button>{" "}
+          and{" "}
+          <Button
+            variant="link"
+            className="text-indigo-600 hover:text-indigo-500 p-0 h-auto text-xs"
+          >
             Privacy Policy
           </Button>
         </p>

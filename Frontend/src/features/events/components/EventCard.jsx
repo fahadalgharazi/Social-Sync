@@ -53,13 +53,8 @@ export default function EventCard({ event }) {
 
         {/* Event Link */}
         {event.url && (
-          <a 
-            href={event.url} 
-            target="_blank" 
-            rel="noreferrer"
-            className="block mt-4"
-          >
-            <Button 
+          <a href={event.url} target="_blank" rel="noreferrer" className="block mt-4">
+            <Button
               className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-200"
               size="sm"
             >

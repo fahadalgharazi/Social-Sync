@@ -3,11 +3,16 @@ import * as EventsService from '../services/events.service.js';
 
 export async function search(req, res, next) {
   try {
-    const userId = req.user.id; 
+    const userId = req.user.id;
     const { personalityType, limit = 20, page = 0 } = req.body || {};
 
-    const { items, page: currentPage, totalPages, total, personalityType: resolvedType } =
-      await EventsService.search({ userId, personalityType, limit, page });
+    const {
+      items,
+      page: currentPage,
+      totalPages,
+      total,
+      personalityType: resolvedType,
+    } = await EventsService.search({ userId, personalityType, limit, page });
 
     res.json({
       success: true,
