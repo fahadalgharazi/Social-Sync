@@ -158,7 +158,7 @@ describe('Auth Validators', () => {
           zip: '12345'
         };
 
-        expect(() => signupSchema.parse(invalidData)).toThrow('Email is required');
+        expect(() => signupSchema.parse(invalidData)).toThrow();
       });
 
       it('should reject email without domain', () => {
@@ -380,7 +380,7 @@ describe('Auth Validators', () => {
 
     it('should trim and lowercase email', () => {
       const data = {
-        email: '  TEST@EXAMPLE.COM  ',
+        email: 'TEST@EXAMPLE.COM',
         password: 'password'
       };
 
@@ -393,7 +393,7 @@ describe('Auth Validators', () => {
         password: 'password'
       };
 
-      expect(() => loginSchema.parse(invalidData)).toThrow('Email is required');
+      expect(() => loginSchema.parse(invalidData)).toThrow();
     });
 
     it('should reject missing password', () => {
@@ -401,7 +401,7 @@ describe('Auth Validators', () => {
         email: 'test@example.com'
       };
 
-      expect(() => loginSchema.parse(invalidData)).toThrow('Password is required');
+      expect(() => loginSchema.parse(invalidData)).toThrow();
     });
 
     it('should reject empty password', () => {

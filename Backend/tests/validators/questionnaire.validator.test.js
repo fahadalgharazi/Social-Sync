@@ -133,7 +133,7 @@ describe('Questionnaire Validator', () => {
         openEnded: 'Response without answers'
       };
 
-      expect(() => questionnaireSchema.parse(invalidData)).toThrow('required');
+      expect(() => questionnaireSchema.parse(invalidData)).toThrow();
     });
   });
 

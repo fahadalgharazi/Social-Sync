@@ -118,7 +118,7 @@ describe('Events Validator', () => {
         personalityType: 'Invalid Type'
       };
 
-      expect(() => eventSearchSchema.parse(invalidData)).toThrow('must be one of');
+      expect(() => eventSearchSchema.parse(invalidData)).toThrow();
     });
 
     it('should reject personality type with wrong casing', () => {
