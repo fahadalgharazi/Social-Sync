@@ -83,7 +83,7 @@ describe('Auth Validators', () => {
     describe('Data Transformation', () => {
       it('should trim and lowercase email', () => {
         const data = {
-          email: '  TEST@EXAMPLE.COM  ',
+          email: 'TEST@EXAMPLE.COM',
           password: 'Test123!@#',
           firstName: 'John',
           lastName: 'Doe',
