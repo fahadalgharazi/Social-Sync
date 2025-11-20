@@ -149,7 +149,7 @@ describe('Questionnaire Validator', () => {
         }
       };
 
-      expect(() => questionnaireSchema.parse(invalidData)).toThrow();
+      expect(() => questionnaireSchema.parse(invalidData)).toThrow('exactly 3 answers');
     });
 
     it('should reject trait with 4 answers', () => {
@@ -163,7 +163,7 @@ describe('Questionnaire Validator', () => {
         }
       };
 
-      expect(() => questionnaireSchema.parse(invalidData)).toThrow();
+      expect(() => questionnaireSchema.parse(invalidData)).toThrow('exactly 3 answers');
     });
 
     it('should reject empty answer array', () => {
@@ -177,7 +177,7 @@ describe('Questionnaire Validator', () => {
         }
       };
 
-      expect(() => questionnaireSchema.parse(invalidData)).toThrow();
+      expect(() => questionnaireSchema.parse(invalidData)).toThrow('exactly 3 answers');
     });
   });
 
@@ -193,7 +193,7 @@ describe('Questionnaire Validator', () => {
         }
       };
 
-      expect(() => questionnaireSchema.parse(invalidData)).toThrow();
+      expect(() => questionnaireSchema.parse(invalidData)).toThrow('between 1 and 5');
     });
 
     it('should reject answer value of 6', () => {
@@ -207,7 +207,7 @@ describe('Questionnaire Validator', () => {
         }
       };
 
-      expect(() => questionnaireSchema.parse(invalidData)).toThrow();
+      expect(() => questionnaireSchema.parse(invalidData)).toThrow('between 1 and 5');
     });
 
     it('should reject negative answer values', () => {
@@ -221,7 +221,7 @@ describe('Questionnaire Validator', () => {
         }
       };
 
-      expect(() => questionnaireSchema.parse(invalidData)).toThrow();
+      expect(() => questionnaireSchema.parse(invalidData)).toThrow('between 1 and 5');
     });
 
     it('should reject decimal answer values', () => {
@@ -235,7 +235,7 @@ describe('Questionnaire Validator', () => {
         }
       };
 
-      expect(() => questionnaireSchema.parse(invalidData)).toThrow();
+      expect(() => questionnaireSchema.parse(invalidData)).toThrow('whole number');
     });
   });
 
@@ -300,7 +300,7 @@ describe('Questionnaire Validator', () => {
         openEnded: 'A'.repeat(2001) // One character too long
       };
 
-      expect(() => questionnaireSchema.parse(invalidData)).toThrow();
+      expect(() => questionnaireSchema.parse(invalidData)).toThrow('2000 characters');
     });
 
     it('should accept empty string for open-ended', () => {

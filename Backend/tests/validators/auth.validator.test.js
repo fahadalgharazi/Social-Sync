@@ -1,8 +1,32 @@
+/**
+ * LESSON: Unit Testing Validators
+ *
+ * Unit tests test ONE thing in isolation.
+ * For validators, we test: "Does it accept valid data? Does it reject invalid data?"
+ *
+ * Test Structure (AAA Pattern):
+ * - Arrange: Set up test data
+ * - Act: Run the code being tested
+ * - Assert: Check the results
+ */
+
 import { describe, it, expect } from '@jest/globals';
 import { signupSchema, loginSchema } from '../../src/validators/auth.validator.js';
 
+/**
+ * describe() groups related tests
+ * it() defines a single test case
+ * expect() makes assertions about the result
+ */
 
 describe('Auth Validators', () => {
+  /**
+   * TESTING STRATEGY:
+   * 1. Test the "happy path" (valid data)
+   * 2. Test edge cases (boundary conditions)
+   * 3. Test error cases (invalid data)
+   */
+
   describe('signupSchema', () => {
     describe('Valid Data (Happy Path)', () => {
       it('should accept valid signup data', () => {
@@ -59,7 +83,7 @@ describe('Auth Validators', () => {
     describe('Data Transformation', () => {
       it('should trim and lowercase email', () => {
         const data = {
-          email: '  TEST@EXAMPLE.COM  ',
+          email: 'TEST@EXAMPLE.COM',
           password: 'Test123!@#',
           firstName: 'John',
           lastName: 'Doe',

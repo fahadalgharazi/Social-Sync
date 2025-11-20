@@ -5,10 +5,11 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "start": "node server.js",
-    "format": "prettier --write \"src/**/*.js\" \"*.js\"",
-    "test": "echo 'Tests coming soon' && exit 0"
+    "dev": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -29,6 +30,8 @@
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
+    "@swc/core": "^1.15.2",
+    "@swc/jest": "^0.2.39",
     "jest": "^30.2.0",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",

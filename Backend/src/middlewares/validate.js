@@ -1,20 +1,6 @@
 // Backend/src/middlewares/validate.js
 import { ZodError } from 'zod';
 
-/**
- * Higher-Order Function (HOF) Pattern
- *
- * This is a function that RETURNS another function.
- * Why? Because we need to customize the middleware for each route.
- *
- * Usage:
- *   router.post('/signup', validate(signupSchema), handler);
- *                          ^^^^^^^^^^^^^^^^^^^^^^
- *                          This calls validate() which RETURNS the actual middleware
- *
- * @param {import('zod').ZodSchema} schema - The Zod schema to validate against
- * @returns {Function} Express middleware function
- */
 export const validate = (schema) => {
   // This is the actual middleware function that Express will call
   return (req, res, next) => {
