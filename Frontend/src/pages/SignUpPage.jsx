@@ -1,5 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signupSchema } from "../validators/auth.validator";
 import {
   Eye,
   EyeOff,
@@ -9,8 +12,6 @@ import {
   MapPin,
   Heart,
   ArrowRight,
-  CheckCircle,
-  XCircle,
   AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -35,24 +36,46 @@ import {
 import { signup, login } from "../features/auth/api/authApi";
 
 export default function SignUpPage() {
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    gender: "",
-    bio: "",
-    interests: "",
-    zip: "",
-  });
+  const nav = useNavigate();
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [fieldErrors, setFieldErrors] = useState({});
-  const nav = useNavigate();
+
+  /**
+   * LESSON: React Hook Form with Multi-Step Forms
+   *
+   * React Hook Form works great with multi-step forms!
+   * - trigger(): Validates specific fields
+   * - watch(): Observes field values for real-time updates
+   * - All validation still uses our Zod schema
+   */
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    trigger,
+    watch,
+    setValue
+  } = useForm({
+    resolver: zodResolver(signupSchema),
+    mode: "onChange", // Validate as user types
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      gender: "",
+      bio: "",
+      interests: "",
+      zip: ""
+    }
+  });
+
+  // Watch password for strength indicator
+  const password = watch("password");
+  const confirmPassword = watch("confirmPassword");
 
   // Password strength calculation
   const getPasswordStrength = (password) => {
@@ -69,69 +92,32 @@ export default function SignUpPage() {
     return { strength, label: "Strong", color: "bg-green-500" };
   };
 
-  const passwordStrength = getPasswordStrength(form.password);
+  const passwordStrength = getPasswordStrength(password);
 
-  // Email validation
-  const isValidEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  // ZIP validation
-  const isValidZip = (zip) => {
-    return /^\d{5}$/.test(zip);
-  };
-
-  const updateForm = (field, value) => {
-    setForm((f) => ({ ...f, [field]: value }));
-  };
-
-  const isStep1Valid = () => {
-    return (
-      form.firstName &&
-      form.lastName &&
-      form.email &&
-      isValidEmail(form.email) &&
-      form.password &&
-      form.confirmPassword &&
-      form.password === form.confirmPassword &&
-      passwordStrength.strength >= 2
-    ); // At least medium strength
-  };
-
-  const isStep2Valid = () => {
-    return form.gender && form.zip && isValidZip(form.zip);
-  };
-
-  async function submit(e) {
-    e.preventDefault();
-    setError("");
-
-    if (form.password !== form.confirmPassword) {
-      return setError("Passwords do not match.");
+  /**
+   * Validate Step 1 fields before allowing progression
+   */
+  const validateStep1 = async () => {
+    const fieldsToValidate = ["firstName", "lastName", "email", "password", "confirmPassword"];
+    const isValid = await trigger(fieldsToValidate);
+    if (isValid) {
+      setCurrentStep(2);
     }
+  };
 
-    const payload = {
-      firstName: form.firstName.trim(),
-      lastName: form.lastName.trim(),
-      email: form.email.trim().toLowerCase(),
-      password: form.password,
-      gender: form.gender,
-      bio: form.bio,
-      interests: form.interests,
-      zip: form.zip.trim(),
-    };
-
+  /**
+   * Form submission - only called if ALL validation passes
+   */
+  async function onSubmit(data) {
+    setError("");
     try {
-      setSubmitting(true);
-      await signup(payload);
-      await login(payload.email, payload.password);
+      await signup(data);
+      await login(data.email, data.password);
       nav("/questionnaire");
     } catch (e) {
       const msg =
         e?.response?.data?.message || e?.response?.data?.error || e?.message || "Sign up failed";
       setError(msg);
-    } finally {
-      setSubmitting(false);
     }
   }
 
@@ -193,7 +179,7 @@ export default function SignUpPage() {
 
           {/* Form */}
           <CardContent className="px-8 pb-6">
-            <form onSubmit={submit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {currentStep === 1 ? (
                 /* Step 1: Account Information */
                 <>
@@ -208,12 +194,15 @@ export default function SignUpPage() {
                           id="firstName"
                           type="text"
                           placeholder="John"
-                          value={form.firstName}
-                          onChange={(e) => updateForm("firstName", e.target.value)}
-                          className="pl-10 h-11 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                          required
+                          {...register("firstName")}
+                          className={`pl-10 h-11 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${
+                            errors.firstName ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""
+                          }`}
                         />
                       </div>
+                      {errors.firstName && (
+                        <p className="text-xs text-red-600">{errors.firstName.message}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -226,12 +215,15 @@ export default function SignUpPage() {
                           id="lastName"
                           type="text"
                           placeholder="Doe"
-                          value={form.lastName}
-                          onChange={(e) => updateForm("lastName", e.target.value)}
-                          className="pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                          required
+                          {...register("lastName")}
+                          className={`pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${
+                            errors.lastName ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""
+                          }`}
                         />
                       </div>
+                      {errors.lastName && (
+                        <p className="text-xs text-red-600">{errors.lastName.message}</p>
+                      )}
                     </div>
                   </div>
 
@@ -245,16 +237,16 @@ export default function SignUpPage() {
                         id="email"
                         type="email"
                         placeholder="john@example.com"
-                        value={form.email}
-                        onChange={(e) => updateForm("email", e.target.value)}
-                        className="pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                        required
+                        {...register("email")}
+                        className={`pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${
+                          errors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""
+                        }`}
                       />
                     </div>
-                    {form.email && !isValidEmail(form.email) && (
+                    {errors.email && (
                       <p className="text-xs text-red-600 flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
-                        Please enter a valid email address
+                        {errors.email.message}
                       </p>
                     )}
                   </div>
@@ -269,10 +261,10 @@ export default function SignUpPage() {
                         id="password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Create a strong password"
-                        value={form.password}
-                        onChange={(e) => updateForm("password", e.target.value)}
-                        className="pl-10 pr-12 h-11 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                        required
+                        {...register("password")}
+                        className={`pl-10 pr-12 h-11 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${
+                          errors.password ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""
+                        }`}
                       />
                       <Button
                         type="button"
@@ -288,7 +280,7 @@ export default function SignUpPage() {
                         )}
                       </Button>
                     </div>
-                    {form.password && (
+                    {password && (
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <div className="flex-1 bg-gray-200 rounded-full h-1.5">
@@ -314,6 +306,9 @@ export default function SignUpPage() {
                         </p>
                       </div>
                     )}
+                    {errors.password && (
+                      <p className="text-xs text-red-600">{errors.password.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -326,10 +321,10 @@ export default function SignUpPage() {
                         id="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder="Confirm your password"
-                        value={form.confirmPassword}
-                        onChange={(e) => updateForm("confirmPassword", e.target.value)}
-                        className="pl-10 pr-12 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                        required
+                        {...register("confirmPassword")}
+                        className={`pl-10 pr-12 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${
+                          errors.confirmPassword ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""
+                        }`}
                       />
                       <Button
                         type="button"
@@ -345,18 +340,14 @@ export default function SignUpPage() {
                         )}
                       </Button>
                     </div>
-                  </div>
-
-                  {form.password &&
-                    form.confirmPassword &&
-                    form.password !== form.confirmPassword && (
-                      <p className="text-sm text-red-600">Passwords do not match</p>
+                    {errors.confirmPassword && (
+                      <p className="text-xs text-red-600">{errors.confirmPassword.message}</p>
                     )}
+                  </div>
 
                   <Button
                     type="button"
-                    onClick={() => setCurrentStep(2)}
-                    disabled={!isStep1Valid()}
+                    onClick={validateStep1}
                     className="w-full h-11 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transform transition-all duration-200 hover:scale-[1.02]"
                   >
                     Continue
@@ -372,10 +363,12 @@ export default function SignUpPage() {
                         Gender
                       </Label>
                       <Select
-                        value={form.gender}
-                        onValueChange={(value) => updateForm("gender", value)}
+                        value={watch("gender") || ""}
+                        onValueChange={(value) => setValue("gender", value)}
                       >
-                        <SelectTrigger className="h-11 border-gray-200 bg-white/50 backdrop-blur-sm">
+                        <SelectTrigger className={`h-11 border-gray-200 bg-white/50 backdrop-blur-sm ${
+                          errors.gender ? "border-red-500" : ""
+                        }`}>
                           <SelectValue placeholder="Select gender" />
                         </SelectTrigger>
                         <SelectContent>
@@ -385,6 +378,9 @@ export default function SignUpPage() {
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
+                      {errors.gender && (
+                        <p className="text-xs text-red-600">{errors.gender.message}</p>
+                      )}
                     </div>
 
                     <div className="space-y-2">
@@ -398,17 +394,16 @@ export default function SignUpPage() {
                           type="text"
                           inputMode="numeric"
                           placeholder="12345"
-                          maxLength={5}
-                          value={form.zip}
-                          onChange={(e) => updateForm("zip", e.target.value.replace(/\D/g, ""))}
-                          className="pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                          required
+                          {...register("zip")}
+                          className={`pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${
+                            errors.zip ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""
+                          }`}
                         />
                       </div>
-                      {form.zip && !isValidZip(form.zip) && (
+                      {errors.zip && (
                         <p className="text-xs text-red-600 flex items-center gap-1">
                           <AlertCircle className="w-3 h-3" />
-                          Please enter a valid 5-digit ZIP code
+                          {errors.zip.message}
                         </p>
                       )}
                     </div>
@@ -421,10 +416,14 @@ export default function SignUpPage() {
                     <Textarea
                       id="bio"
                       placeholder="Tell us a bit about yourself..."
-                      value={form.bio}
-                      onChange={(e) => updateForm("bio", e.target.value)}
-                      className="min-h-16 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                      {...register("bio")}
+                      className={`min-h-16 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none ${
+                        errors.bio ? "border-red-500" : ""
+                      }`}
                     />
+                    {errors.bio && (
+                      <p className="text-xs text-red-600">{errors.bio.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -434,11 +433,15 @@ export default function SignUpPage() {
                     <Textarea
                       id="interests"
                       placeholder="e.g., hiking, photography, cooking, music"
-                      value={form.interests}
-                      onChange={(e) => updateForm("interests", e.target.value)}
-                      className="min-h-20 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                      {...register("interests")}
+                      className={`min-h-20 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none ${
+                        errors.interests ? "border-red-500" : ""
+                      }`}
                     />
                     <p className="text-xs text-gray-500">Separate interests with commas</p>
+                    {errors.interests && (
+                      <p className="text-xs text-red-600">{errors.interests.message}</p>
+                    )}
                   </div>
 
                   {error && (
@@ -458,10 +461,10 @@ export default function SignUpPage() {
                     </Button>
                     <Button
                       type="submit"
-                      disabled={submitting || !isStep2Valid()}
+                      disabled={isSubmitting}
                       className="flex-1 h-11 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transform transition-all duration-200 hover:scale-[1.02]"
                     >
-                      {submitting ? (
+                      {isSubmitting ? (
                         <>
                           <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
                           Creating Account...

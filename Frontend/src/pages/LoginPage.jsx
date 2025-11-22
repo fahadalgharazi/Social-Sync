@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { login } from "../features/auth/api/authApi";
+import { loginSchema } from "../validators/auth.validator";
 
 import { Eye, EyeOff, Mail, Lock, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -19,26 +22,42 @@ import { Checkbox } from "@/components/ui/checkbox";
 export default function LoginPage() {
   const nav = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
-  const handleInputChange = (e) => {
-    setFormData((f) => ({ ...f, [e.target.name]: e.target.value }));
-  };
+  /**
+   * LESSON: React Hook Form + Zod Integration
+   *
+   * useForm() manages form state and validation.
+   * - register(): Connects inputs to the form
+   * - handleSubmit(): Validates before calling onSubmit
+   * - formState: Contains errors, isSubmitting, etc.
+   * - zodResolver(): Uses our Zod schema for validation
+   */
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting }
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: ""
+    }
+  });
 
-  async function submit(e) {
-    e.preventDefault();
+  /**
+   * This function ONLY runs if validation passes!
+   * No need for e.preventDefault() - handleSubmit does it
+   */
+  async function onSubmit(data) {
     setError("");
-    setSubmitting(true);
     try {
-      const { error } = await login(formData.email.trim(), formData.password);
+      // Data is already validated and transformed by Zod
+      const { error } = await login(data.email, data.password);
       if (error) return setError(error.message || "Login failed");
       nav("/events");
     } catch (err) {
       setError(err?.message || "Login failed");
-    } finally {
-      setSubmitting(false);
     }
   }
 
@@ -67,7 +86,7 @@ export default function LoginPage() {
           </CardHeader>
 
           <CardContent>
-            <form className="space-y-5" onSubmit={submit} noValidate>
+            <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                   Email
@@ -76,16 +95,18 @@ export default function LoginPage() {
                   <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                   <Input
                     id="email"
-                    name="email"
                     type="email"
                     placeholder="Enter your email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    className="pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200"
-                    required
+                    {...register("email")}
+                    className={`pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 ${
+                      errors.email ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""
+                    }`}
                     autoComplete="email"
                   />
                 </div>
+                {errors.email && (
+                  <p className="text-sm text-red-600">{errors.email.message}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -96,13 +117,12 @@ export default function LoginPage() {
                   <Lock className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
                   <Input
                     id="password"
-                    name="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="pl-10 pr-12 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200"
-                    required
+                    {...register("password")}
+                    className={`pl-10 pr-12 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 ${
+                      errors.password ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""
+                    }`}
                     autoComplete="current-password"
                   />
                   <Button
@@ -116,6 +136,9 @@ export default function LoginPage() {
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
+                {errors.password && (
+                  <p className="text-sm text-red-600">{errors.password.message}</p>
+                )}
               </div>
 
               <div className="flex items-center justify-between text-sm">
@@ -138,10 +161,10 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                disabled={submitting}
+                disabled={isSubmitting}
                 className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transform transition-all duration-200 hover:scale-[1.02] disabled:opacity-70"
               >
-                {submitting ? "Signing in…" : "Sign In"}
+                {isSubmitting ? "Signing in…" : "Sign In"}
               </Button>
 
               <div className="relative">
