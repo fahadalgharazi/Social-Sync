@@ -5,9 +5,9 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/.bin/jest",
-    "test:watch": "node --experimental-vm-modules node_modules/.bin/jest --watch",
-    "test:coverage": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
@@ -21,6 +21,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
     "morgan": "^1.10.1",
     "ngeohash": "^0.6.3",
@@ -29,8 +30,11 @@
   },
   "devDependencies": {
     "@jest/globals": "^30.2.0",
+    "@swc/core": "^1.15.3",
+    "@swc/jest": "^0.2.39",
     "jest": "^30.2.0",
     "nodemon": "^3.1.10",
+    "prettier": "^3.6.2",
     "supertest": "^7.1.4"
   }
 }
