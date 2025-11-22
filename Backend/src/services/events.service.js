@@ -1,4 +1,3 @@
-// Backend/src/services/events.service.js
 import * as TM from './ticketmaster.client.js';
 import { supabaseAdmin } from '../config/supabase.js';
 

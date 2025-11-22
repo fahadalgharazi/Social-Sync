@@ -15,7 +15,7 @@ export const eventSearchSchema = z.object({
         message: `personalityType must be one of: ${PERSONALITY_TYPES.join(', ')}`
       })
     })
-    .optional(),
+    .optional(), // Only accept valid enum or undefined (not null!)
 
   limit: z
     .coerce
