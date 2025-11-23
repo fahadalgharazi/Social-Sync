@@ -1,15 +1,24 @@
-import React, { useState } from 'react';
-import { UserPlus, FileText, Calendar, Users, Plus, Heart, Home, LogIn, User, Menu, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState } from "react";
+import {
+  UserPlus,
+  FileText,
+  Calendar,
+  Users,
+  Plus,
+  Heart,
+  Home,
+  LogIn,
+  User,
+  Menu,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-
-
-
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">      
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         {/* Background decorations */}
@@ -27,18 +36,25 @@ export default function LandingPage() {
               <span className="text-4xl md:text-6xl">Amazing Events</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Join a vibrant community where you can discover exciting events, connect with like-minded people, 
-              and create unforgettable experiences together.
+              Join a vibrant community where you can discover exciting events, connect with
+              like-minded people, and create unforgettable experiences together.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Link to={"/signup"}>
-                <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-lg px-8 py-6 rounded-xl shadow-xl hover:shadow-2xl transform transition-all duration-200 hover:scale-105">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-lg px-8 py-6 rounded-xl shadow-xl hover:shadow-2xl transform transition-all duration-200 hover:scale-105"
+                >
                   <UserPlus className="w-5 h-5 mr-2" />
                   Create an Account
                 </Button>
               </Link>
               <Link to={"/questionnaire"}>
-                <Button variant="outline" size="lg" className="text-lg px-8 py-6 rounded-xl border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-lg px-8 py-6 rounded-xl border-2 border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                >
                   <FileText className="w-5 h-5 mr-2" />
                   Take Questionnaire
                 </Button>
@@ -56,7 +72,8 @@ export default function LandingPage() {
               Everything You Need to Build Community
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Powerful features designed to help you connect, engage, and create memorable experiences with others.
+              Powerful features designed to help you connect, engage, and create memorable
+              experiences with others.
             </p>
           </div>
 
@@ -67,7 +84,10 @@ export default function LandingPage() {
                   <Calendar className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-3">Discover Events</h3>
-                <p className="text-gray-600 leading-relaxed">Find amazing events happening in your area and connect with your community through shared experiences and interests.</p>
+                <p className="text-gray-600 leading-relaxed">
+                  Find amazing events happening in your area and connect with your community through
+                  shared experiences and interests.
+                </p>
               </CardContent>
             </Card>
 
@@ -77,7 +97,10 @@ export default function LandingPage() {
                   <Users className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-3">Build Community</h3>
-                <p className="text-gray-600 leading-relaxed">Connect with like-minded people and build lasting friendships through shared interests and meaningful conversations.</p>
+                <p className="text-gray-600 leading-relaxed">
+                  Connect with like-minded people and build lasting friendships through shared
+                  interests and meaningful conversations.
+                </p>
               </CardContent>
             </Card>
 
@@ -87,7 +110,10 @@ export default function LandingPage() {
                   <Plus className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-3">Create Events</h3>
-                <p className="text-gray-600 leading-relaxed">Host your own events and bring people together around your passions and interests. Make lasting memories together.</p>
+                <p className="text-gray-600 leading-relaxed">
+                  Host your own events and bring people together around your passions and interests.
+                  Make lasting memories together.
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -102,11 +128,15 @@ export default function LandingPage() {
             Ready to Start Connecting?
           </h2>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of people who are already building meaningful connections and creating amazing experiences together.
+            Join thousands of people who are already building meaningful connections and creating
+            amazing experiences together.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link to={"/signup"}>
-              <Button size="lg" className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-lg px-8 py-6 rounded-xl shadow-xl hover:shadow-2xl transform transition-all duration-200 hover:scale-105">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-lg px-8 py-6 rounded-xl shadow-xl hover:shadow-2xl transform transition-all duration-200 hover:scale-105"
+              >
                 <UserPlus className="w-5 h-5 mr-2" />
                 Join SocialSync Today
               </Button>
@@ -117,7 +147,6 @@ export default function LandingPage() {
           </div>
         </div>
       </div>
-
     </div>
   );
 }

@@ -1,4 +1,3 @@
-// Backend/src/services/events.service.js
 import * as TM from './ticketmaster.client.js';
 import { supabaseAdmin } from '../config/supabase.js';
 
@@ -9,7 +8,9 @@ export async function search({ userId, personalityType, limit = 20, page = 0 }) 
   if (!type) {
     const { data: pRow, error: pErr } = await supabaseAdmin
       .from('user_personality_data')
-      .select('personality_type, z_score_extraversion, z_score_neuroticism, z_score_agreeableness, z_score_conscientiousness, z_score_openness')
+      .select(
+        'personality_type, z_score_extraversion, z_score_neuroticism, z_score_agreeableness, z_score_conscientiousness, z_score_openness',
+      )
       .eq('id', userId)
       .single();
 
@@ -48,7 +49,7 @@ export async function search({ userId, personalityType, limit = 20, page = 0 }) 
     z, // optional; safe if undefined
     radius: 100, // in miles; adjust as needed
   });
-  console.log("Events search result:", result, type,gRow.geohash);
+  console.log('Events search result:', result, type, gRow.geohash);
   // Ensure the controller can echo type in meta
   return { ...result, personalityType: type };
 }

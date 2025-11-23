@@ -7,7 +7,7 @@ export const ticketmasterHttp = axios.create({
   timeout: 15000,
 });
 
-ticketmasterHttp.interceptors.request.use(cfg => {
+ticketmasterHttp.interceptors.request.use((cfg) => {
   const { url, params } = cfg;
   console.log('[TM] GET', url, {
     geoPoint: params?.geoPoint,
@@ -16,7 +16,7 @@ ticketmasterHttp.interceptors.request.use(cfg => {
     segmentName: params?.segmentName,
     classificationName: params?.classificationName,
     size: params?.size,
-    page: params?.page
+    page: params?.page,
   });
   return cfg;
 });

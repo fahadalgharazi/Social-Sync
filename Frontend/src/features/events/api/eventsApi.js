@@ -1,12 +1,14 @@
 import { http } from "../../../lib/http";
 
-/**
- * Search events.
- * Backend infers user from cookies, geohash & personality from DB.
- * Optional personalityType lets you override the stored value (e.g. for experiments).
- */
-export async function searchEvents({personalityType, page = 0, limit = 20 } = {}) {
-  const res = await http.post("/events/search", { personalityType, limit, page });
+export async function searchEvents({ personalityType, page = 0, limit = 20 } = {}) {
+  // Only send personalityType if it has a value
+  // Backend will fetch from DB if not provided
+  const payload = { limit, page };
+  if (personalityType) {
+    payload.personalityType = personalityType;
+  }
+
+  const res = await http.post("/events/search", payload);
   const { data, pagination, meta } = res.data || {};
   // Controller sends: { success, data, pagination, meta }
   return {

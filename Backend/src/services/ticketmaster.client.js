@@ -3,22 +3,25 @@ import { buildPersonaSignals } from './recommendation/buildPersonaSignals.js';
 import ngeohash from 'ngeohash';
 
 const RADII_MI = [15, 30, 60, 120, 250];
-const MAX_TOTAL = 100; 
+const MAX_TOTAL = 100;
 
 export async function search({ personalityType, geoPoint, limit = 20, page = 0 }) {
   const { segmentMix, tokens, classificationHints, weights } = buildPersonaSignals(personalityType);
   const segments = Object.keys(segmentMix);
 
-
-  const targetCounts = Object.fromEntries(segments.map(s => [s, Math.round(MAX_TOTAL * segmentMix[s])]));
-  const haveCounts = Object.fromEntries(segments.map(s => [s, 0]));
+  const targetCounts = Object.fromEntries(
+    segments.map((s) => [s, Math.round(MAX_TOTAL * segmentMix[s])]),
+  );
+  const haveCounts = Object.fromEntries(segments.map((s) => [s, 0]));
 
   // Decode user geohash once for proximity scoring
-  let userLat = null, userLon = null;
+  let userLat = null,
+    userLon = null;
   try {
     if (geoPoint) {
       const d = ngeohash.decode(geoPoint);
-      userLat = d.latitude; userLon = d.longitude;
+      userLat = d.latitude;
+      userLon = d.longitude;
     }
   } catch {}
 
@@ -63,7 +66,11 @@ export async function search({ personalityType, geoPoint, limit = 20, page = 0 }
   // Fallback if nothing local
   if (collected.length === 0) {
     const r = await tmQuery({ limit: 30, page: 0, keyword: 'virtual' });
-    for (const e of r.items) if (!seen.has(e.id)) { seen.add(e.id); collected.push(e); }
+    for (const e of r.items)
+      if (!seen.has(e.id)) {
+        seen.add(e.id);
+        collected.push(e);
+      }
   }
 
   // Rank with persona + recency + proximity + diversity, then interleave by segment a bit
@@ -79,7 +86,15 @@ export async function search({ personalityType, geoPoint, limit = 20, page = 0 }
   return { items, page, totalPages, total, tried };
 }
 
-async function tmQuery({ geoPoint, radius, limit, page, keyword, segmentName, classificationName }) {
+async function tmQuery({
+  geoPoint,
+  radius,
+  limit,
+  page,
+  keyword,
+  segmentName,
+  classificationName,
+}) {
   try {
     const params = {
       size: limit,
@@ -89,7 +104,10 @@ async function tmQuery({ geoPoint, radius, limit, page, keyword, segmentName, cl
       countryCode: 'US',
     };
     if (geoPoint) params.geoPoint = geoPoint;
-    if (radius) { params.radius = radius; params.unit = 'miles'; }
+    if (radius) {
+      params.radius = radius;
+      params.unit = 'miles';
+    }
 
     if (segmentName) params.segmentName = segmentName;
     if (classificationName) {
@@ -112,19 +130,34 @@ async function tmQuery({ geoPoint, radius, limit, page, keyword, segmentName, cl
   } catch (e) {
     const status = e?.response?.status;
     const body = e?.response?.data;
-    console.error('[TM] /events.json error', { status, message: e?.message, body, geoPoint, radius, segmentName });
-    return { items: [], page, totalPages: 0, total: 0, tried: { geoPoint, radius, segmentName }, error: e?.message, status, body };
+    console.error('[TM] /events.json error', {
+      status,
+      message: e?.message,
+      body,
+      geoPoint,
+      radius,
+      segmentName,
+    });
+    return {
+      items: [],
+      page,
+      totalPages: 0,
+      total: 0,
+      tried: { geoPoint, radius, segmentName },
+      error: e?.message,
+      status,
+      body,
+    };
   }
 }
 
-
 function rankEvents(events, tokens, w, userLat, userLon) {
   // Pre-compute base scores
-  const base = events.map(e => ({
+  const base = events.map((e) => ({
     e,
     persona: personaMatchScore(e, tokens),
     recency: recencyScore(e.date),
-    proximity: proximityScore(e, userLat, userLon)
+    proximity: proximityScore(e, userLat, userLon),
   }));
 
   // Greedy diversity-aware selection:
@@ -156,9 +189,7 @@ function rankEvents(events, tokens, w, userLat, userLon) {
 }
 
 function weighted(row, w) {
-  return (w.persona * row.persona) +
-         (w.recency * row.recency) +
-         (w.proximity * row.proximity);
+  return w.persona * row.persona + w.recency * row.recency + w.proximity * row.proximity;
 }
 
 function personaMatchScore(event, tokens) {
@@ -167,7 +198,8 @@ function personaMatchScore(event, tokens) {
   let s = 0;
   for (const t of tokens) {
     const tok = t.toLowerCase();
-    if (hay.includes(tok)) s += 2; // phrase hit
+    if (hay.includes(tok))
+      s += 2; // phrase hit
     else s += tok.split(/\s+/).reduce((acc, p) => acc + (p && hay.includes(p) ? 1 : 0), 0);
   }
   return Math.min(s, 10); // cap
@@ -179,29 +211,35 @@ function recencyScore(dateStr) {
   const dt = new Date(dateStr).getTime() || now;
   const days = Math.max(0, (dt - now) / (1000 * 60 * 60 * 24));
   // 1.0 for within ~7 days, tapers to 0 by ~45 days
-  return Math.max(0, 1 - (days / 45));
+  return Math.max(0, 1 - days / 45);
 }
 
 function proximityScore(event, userLat, userLon) {
   const vLat = Number(event.venueLat);
   const vLon = Number(event.venueLon);
-  if (!Number.isFinite(userLat) || !Number.isFinite(userLon) || !Number.isFinite(vLat) || !Number.isFinite(vLon)) {
+  if (
+    !Number.isFinite(userLat) ||
+    !Number.isFinite(userLon) ||
+    !Number.isFinite(vLat) ||
+    !Number.isFinite(vLon)
+  ) {
     return 0.5; // neutral if we can’t compute
   }
   const d = haversineMiles(userLat, userLon, vLat, vLon);
   // 1.0 when very close, ~0 by ~150 miles
-  return Math.max(0, 1 - (d / 150));
+  return Math.max(0, 1 - d / 150);
 }
 
 function haversineMiles(lat1, lon1, lat2, lon2) {
-  const toRad = d => d * Math.PI / 180;
+  const toRad = (d) => (d * Math.PI) / 180;
   const R = 3958.8; // miles
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);
-  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   return 2 * R * Math.asin(Math.sqrt(a));
 }
-
 
 function interleaveBySegment(items) {
   const buckets = new Map();
@@ -211,7 +249,7 @@ function interleaveBySegment(items) {
     buckets.get(k).push(e);
   }
   const order = ['Music', 'Sports', 'Arts & Theatre', 'Miscellaneous', 'Other'];
-  const seq = order.filter(o => buckets.has(o)).map(o => buckets.get(o));
+  const seq = order.filter((o) => buckets.has(o)).map((o) => buckets.get(o));
   for (const [k, arr] of buckets) if (!order.includes(k)) seq.push(arr);
 
   const out = [];
@@ -229,7 +267,7 @@ function interleaveBySegment(items) {
 }
 
 function normalize(evt) {
-  const img = evt.images?.find(i => i.width >= 300) || evt.images?.[0];
+  const img = evt.images?.find((i) => i.width >= 300) || evt.images?.[0];
   const cls = Array.isArray(evt.classifications) ? evt.classifications[0] : null;
   const venue = evt._embedded?.venues?.[0];
 

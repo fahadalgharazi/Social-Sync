@@ -1,22 +1,19 @@
 import { Router } from 'express';
 import * as EventsController from '../controllers/events.controller.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
+import authGuard from '../middlewares/auth.js';
+import { validate } from '../middlewares/validate.js';
+import { eventSearchSchema } from '../validators/events.validator.js';
 
 const router = Router();
-// function validateEventRequest(req, res, next) {
-//   const { personalityType, zip } = req.body || {};
-//   if (!personalityType) return res.status(400).json({ error: 'personalityType is required' });
-//   if (!zip) return res.status(400).json({ error: 'zip code is required' });
-//   if (!/^\d{5}(-\d{4})?$/.test(String(zip).trim())) {
-//     return res.status(400).json({ error: 'Invalid ZIP code format' });
-//   }
-//   req.body.zip = String(zip).trim();
-//   next();
-// }
-function validateEventRequest(_req, _res, next) {
-  next();
-}
-router.post('/search', validateEventRequest, asyncHandler(EventsController.search));
+
+router.post(
+  '/search',
+  authGuard,
+  validate(eventSearchSchema),
+  asyncHandler(EventsController.search)
+);
+
 router.get('/personalities', asyncHandler(EventsController.personalities));
 
 export default router;

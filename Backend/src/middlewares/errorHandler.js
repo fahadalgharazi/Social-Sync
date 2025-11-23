@@ -1,4 +1,26 @@
 export default function errorHandler(err, _req, res, _next) {
-  const status = err.status || (/^User location/.test(err.message) || /^personalityType/.test(err.message) ? 400 : 500);
-  res.status(status).json({ message: err.message || 'Something went wrong' });
+  // Log the error for debugging
+  console.error('[ERROR]', err.message);
+  
+  // Default to 500 Internal Server Error
+  let status = err.status || 500;
+  let message = err.message || 'Something went wrong';
+
+  // Handle specific error types
+  if (err.name === 'ValidationError') {
+    status = 400;
+    message = 'Invalid input data';
+  }
+
+  // In development, send full error details
+  // In production, hide error details for security
+  const response = {
+    error: message,
+  };
+
+  if (process.env.NODE_ENV === 'development') {
+    response.stack = err.stack;
+  }
+
+  res.status(status).json(response);
 }

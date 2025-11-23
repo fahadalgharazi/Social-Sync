@@ -3,156 +3,234 @@ import { Router } from 'express';
 import { supabaseAnon, supabaseAdmin } from '../config/supabase.js';
 import fetch from 'node-fetch';
 import ngeohash from 'ngeohash';
+import { validate } from '../middlewares/validate.js';
+import { signupSchema, loginSchema } from '../validators/auth.validator.js';
 
 const router = Router();
+async function resolveZipCode(zip) {
+  const response = await fetch(`https://api.zippopotam.us/us/${zip}`);
 
-// Helper: ZIP -> lat/lng/city/state
-async function zipToLatLng(zip) {
-  const r = await fetch(`https://api.zippopotam.us/us/${zip}`);
-  if (!r.ok) throw new Error('Invalid ZIP');
-  const j = await r.json();
-  const p = j.places?.[0];
-  const lat = Number(p?.latitude), lng = Number(p?.longitude);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) throw new Error('ZIP missing coords');
-  return { lat, lng, city: p['place name'], state: p['state abbreviation'] };
+  if (!response.ok) {
+    throw new Error('ZIP code not found in database');
+  }
+
+  const data = await response.json();
+  const place = data.places?.[0];
+
+  if (!place) {
+    throw new Error('No location data found for ZIP code');
+  }
+
+  const lat = Number(place.latitude);
+  const lng = Number(place.longitude);
+
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    throw new Error('Invalid coordinates for ZIP code');
+  }
+
+  return {
+    lat,
+    lng,
+    city: place['place name'],
+    state: place['state abbreviation'],
+    geohash: ngeohash.encode(lat, lng, 6)
+  };
 }
 
-router.post('/signup', async (req, res, next) => {
+
+router.post('/signup', validate(signupSchema), async (req, res, next) => {
   try {
+    // normalized and validated
     const {
-      email, password,
-      firstName, lastName, gender, bio, interests, zip
-    } = req.body || {};
+      email,      
+      password,   
+      firstName,  
+      lastName,   
+      zip,        
+      gender,     
+      bio,        
+      interests   
+    } = req.body;
 
-    console.log(req.body)
-    if (!email || !password || !firstName || !lastName || !zip) {
-      return next({ status: 400, message: 'Missing required fields' });
-    }
-    const emailNorm = String(email).trim().toLowerCase();
-    const zipNorm = String(zip).trim();
-    if (!/^\d{5}(-\d{4})?$/.test(zipNorm)) {
-      return next({ status: 400, message: 'Invalid ZIP format' });
+    // 1. Create auth user in Supabase
+    const { data: authData, error: authError } = await supabaseAnon.auth.signUp({
+      email,
+      password
+    });
+
+    if (authError) {
+      console.error('[SIGNUP] Supabase auth error:', authError);
+      return res.status(400).json({
+        success: false,
+        message: authError.message || 'Failed to create account'
+      });
     }
 
-    // 1) Supabase auth user
-    const { data: auth, error: aerr } = await supabaseAnon.auth.signUp({ email: emailNorm, password });
-    if (aerr) {
-      console.error('[SIGNUP] supabase signUp error:', aerr);
-      return next({ status: 400, message: aerr.message || 'Sign up failed' });
+    const user = authData.user;
+    if (!user?.id) {
+      return res.status(500).json({
+        success: false,
+        message: 'Account created but user ID not returned'
+      });
     }
-    const user = auth.user;
-    if (!user?.id) return next({ status: 500, message: 'No user returned from auth' });
 
-    //ZIP -> coords + geohash
-    let lat, lng, city, state, geohash;
+    // 2. Resolve ZIP code to geographic data
+    let geoData;
     try {
-      const r = await fetch(`https://api.zippopotam.us/us/${zipNorm}`);
-      if (!r.ok) {
-        console.error('[SIGNUP] zippopotam non-200:', r.status);
-        return next({ status: 400, message: 'ZIP not found' });
+      geoData = await resolveZipCode(zip);
+    } catch (geoError) {
+      console.error('[SIGNUP] ZIP resolution error:', geoError);
+      return res.status(400).json({
+        success: false,
+        message: geoError.message
+      });
+    }
+
+    // 3. Create user record in custom users table
+    const { error: userInsertError } = await supabaseAdmin
+      .from('users')
+      .insert([{
+        id: user.id,
+        email: email,
+        created_at: new Date().toISOString()
+      }]);
+
+    if (userInsertError) {
+      console.error('[SIGNUP] User insert error:', userInsertError);
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to save user record'
+      });
+    }
+
+    // 4. Create user profile data
+    const { error: profileError } = await supabaseAdmin
+      .from('user_data')
+      .upsert([{
+        id: user.id,
+        first_name: firstName,
+        last_name: lastName,
+        gender: gender || null,
+        bio: bio || null,
+        city: geoData.city,
+        state: geoData.state,
+        zipcode: zip,
+        latitude: geoData.lat,
+        longitude: geoData.lng,
+        geohash: geoData.geohash,
+        interests: interests,
+        created_at: new Date().toISOString()
+      }], { onConflict: 'id' });
+
+    if (profileError) {
+      console.error('[SIGNUP] Profile insert error:', profileError);
+      return res.status(400).json({
+        success: false,
+        message: 'Failed to save user profile'
+      });
+    }
+
+    // 5. Return success response
+    return res.status(201).json({
+      success: true,
+      message: 'Account created successfully',
+      user: {
+        id: user.id,
+        email: email
       }
-      const j = await r.json();
-      const p = j.places?.[0];
-      lat = Number(p?.latitude); lng = Number(p?.longitude);
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-        return next({ status: 400, message: 'ZIP missing coordinates' });
-      }
-      city = p['place name']; state = p['state abbreviation'];
-      geohash = ngeohash.encode(lat, lng, 6);
-    } catch (e) {
-      console.error('[SIGNUP] zippopotam fetch error:', e);
-      return next({ status: 400, message: 'Failed to resolve ZIP' });
-    }
+    });
 
-    // 3) Insert rows (service role)
-    const interestsArr = typeof interests === 'string'
-      ? interests.split(',').map(s => s.trim()).filter(Boolean)
-      : (Array.isArray(interests) ? interests : []);
-    const now = new Date().toISOString();
-
-    const { error: uerr } = await supabaseAdmin.from('users').insert([{
-      id: user.id,
-      email: emailNorm,
-      created_at: now,
-    }]);
-    if (uerr) {
-      console.error('[SIGNUP] insert users error:', uerr);
-      return next({ status: 400, message: uerr.message || 'Could not save user' });
-    }
-
-    const { error: derr } = await supabaseAdmin.from('user_data').upsert([{
-      id: user.id,
-      first_name: String(firstName).trim(),
-      last_name: String(lastName).trim(),
-      gender: gender || null,
-      bio: bio || null,
-      city,
-      state,
-      zipcode: zipNorm,
-      latitude: lat,
-      longitude: lng,
-      geohash,
-      interests: interestsArr,
-      created_at: now,
-    }], { onConflict: 'id' });
-    if (derr) {
-      console.error('[SIGNUP] upsert user_data error:', derr);
-      return next({ status: 400, message: derr.message || 'Could not save profile' });
-    }
-
-    return res.status(201).json({ ok: true, user: { id: user.id, email: emailNorm } });
-  } catch (e) {
-    console.error('[SIGNUP] unexpected error:', e);
-    return next({ status: 400, message: e.message || 'Signup failed' });
+  } catch (error) {
+    console.error('[SIGNUP] Unexpected error:', error);
+    return next(error);
   }
 });
 
 
-// --- LOGIN ---
-router.post('/login', async (req, res, next) => {
+
+router.post('/login', validate(loginSchema), async (req, res, next) => {
   try {
-    console.log('[LOGIN] body:', { email: req.body?.email, hasPwd: !!req.body?.password });
-    
     const { email, password } = req.body;
-    const { data, error } = await supabaseAnon.auth.signInWithPassword({ email, password });
-    if (error) return next({ status: 401, message: 'Invalid credentials' });
-    
+
+    // auth supabase
+    const { data, error } = await supabaseAnon.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid email or password'
+      });
+    }
+
     const { access_token, refresh_token, user } = data.session;
-    
-    // ✅ Dynamic cookie options based on environment
     const isProduction = process.env.NODE_ENV === 'production';
-    
-    const cookieOpts = { 
+    const cookieOptions = {
       httpOnly: true,
-      secure: isProduction,                          // true in prod (HTTPS), false in dev
-      sameSite: isProduction ? 'none' : 'lax',      // 'none' for cross-domain in prod
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       path: '/',
-      maxAge: 3600000                                // 1 hour (optional but recommended)
+      maxAge: 3600000 //hour
     };
-    
-    res.cookie('sb_at', access_token, cookieOpts);
-    res.cookie('sb_rt', refresh_token, cookieOpts);
-    
-    res.json({ ok: true, user: { id: user.id, email: user.email } });
-  } catch (e) {
-    next({ status: 401, message: e.message || 'Login failed' });
+
+    // Set auth cookies
+    res.cookie('sb_at', access_token, cookieOptions);
+    res.cookie('sb_rt', refresh_token, cookieOptions);
+
+    return res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        email: user.email
+      }
+    });
+
+  } catch (error) {
+    console.error('[LOGIN] Unexpected error:', error);
+    return next(error);
   }
 });
 
-// --- LOGOUT ---
-router.post('/logout', (req, res) => {
+router.post('/logout', (_req, res) => {
   res.clearCookie('sb_at', { path: '/' });
   res.clearCookie('sb_rt', { path: '/' });
-  res.json({ ok: true });
+
+  return res.json({
+    success: true,
+    message: 'Logged out successfully'
+  });
 });
 
-// --- ME ---
+
 router.get('/me', async (req, res) => {
   const token = req.cookies?.sb_at;
-  if (!token) return res.status(401).json({ error: 'Unauthenticated' });
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Not authenticated'
+    });
+  }
+
   const { data, error } = await supabaseAnon.auth.getUser(token);
-  if (error || !data?.user) return res.status(401).json({ error: 'Invalid session' });
-  res.json({ user: { id: data.user.id, email: data.user.email } });
+
+  if (error || !data?.user) {
+    return res.status(401).json({
+      success: false,
+      message: 'Invalid or expired session'
+    });
+  }
+
+  return res.json({
+    success: true,
+    user: {
+      id: data.user.id,
+      email: data.user.email
+    }
+  });
 });
 
 export default router;

@@ -7,9 +7,12 @@ export default function AuthGuard({ children }) {
 
   useEffect(() => {
     let cancel = false;
-    me().then(u => !cancel && setState({ loading: false, user: u }))
-        .catch(() => !cancel && setState({ loading: false, user: null }));
-    return () => { cancel = true; };
+    me()
+      .then((u) => !cancel && setState({ loading: false, user: u }))
+      .catch(() => !cancel && setState({ loading: false, user: null }));
+    return () => {
+      cancel = true;
+    };
   }, []);
 
   if (state.loading) return null; // or a spinner
