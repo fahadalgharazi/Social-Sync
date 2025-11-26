@@ -5,6 +5,7 @@ import fetch from 'node-fetch';
 import ngeohash from 'ngeohash';
 import { validate } from '../middlewares/validate.js';
 import { signupSchema, loginSchema } from '../validators/auth.validator.js';
+import { sanitizeBio, sanitizeInterests, sanitizeUsername } from '../utils/sanitize.js';
 
 const router = Router();
 async function resolveZipCode(zip) {
@@ -119,23 +120,23 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
       });
     }
 
-    // 5. Create user profile data
+    // 5. Create user profile data (with sanitization)
     const { error: profileError } = await supabaseAdmin
       .from('user_data')
       .upsert([{
         id: user.id,
         first_name: firstName,
         last_name: lastName,
-        username: username,
+        username: sanitizeUsername(username),
         gender: gender || null,
-        bio: bio || null,
+        bio: bio ? sanitizeBio(bio) : null,
         city: geoData.city,
         state: geoData.state,
         zipcode: zip,
         latitude: geoData.lat,
         longitude: geoData.lng,
         geohash: geoData.geohash,
-        interests: interests,
+        interests: interests ? sanitizeInterests(interests) : null,
         created_at: new Date().toISOString()
       }], { onConflict: 'id' });
 

@@ -1,5 +1,6 @@
 // Backend/src/services/questionnaire.service.js
 import { supabaseAdmin, supabaseAnon } from '../config/supabase.js';
+import { sanitizeOpenEnded } from '../utils/sanitize.js';
 
 const NORMS = {
   Extraversion: { mean: 3.3, stdDev: 0.7 },
@@ -56,7 +57,7 @@ export async function submit(req, res, next) {
           agreeableness: Agreeableness,
           conscientiousness: Conscientiousness,
           openness: Openness,
-          open_ended: openEnded,
+          open_ended: openEnded ? sanitizeOpenEnded(openEnded) : null,
           personality_type: personalityType,
           z_score_extraversion: z_E,
           z_score_neuroticism: z_N,

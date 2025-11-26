@@ -51,7 +51,13 @@ app.get('/api/health', (_req, res) => {
 
 app.use('/api', routes);
 
-app.use((req, res) => res.status(404).json({ error: 'Route not found' }));
+// 404 handler - must be after all routes
+app.use((req, res) => res.status(404).json({
+  success: false,
+  message: 'Route not found',
+}));
+
+// Global error handler - must be last
 app.use(errorHandler);
 
 export default app;
