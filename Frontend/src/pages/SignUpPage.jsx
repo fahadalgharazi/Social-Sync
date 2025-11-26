@@ -64,6 +64,7 @@ export default function SignUpPage() {
       firstName: "",
       lastName: "",
       email: "",
+      username: "",
       password: "",
       confirmPassword: "",
       gender: "",
@@ -98,7 +99,7 @@ export default function SignUpPage() {
    * Validate Step 1 fields before allowing progression
    */
   const validateStep1 = async () => {
-    const fieldsToValidate = ["firstName", "lastName", "email", "password", "confirmPassword"];
+    const fieldsToValidate = ["firstName", "lastName", "email", "username", "password", "confirmPassword"];
     const isValid = await trigger(fieldsToValidate);
     if (isValid) {
       setCurrentStep(2);
@@ -247,6 +248,30 @@ export default function SignUpPage() {
                       <p className="text-xs text-red-600 flex items-center gap-1">
                         <AlertCircle className="w-3 h-3" />
                         {errors.email.message}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="username" className="text-sm font-medium text-gray-700">
+                      Username
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                      <Input
+                        id="username"
+                        type="text"
+                        placeholder="johndoe123"
+                        {...register("username")}
+                        className={`pl-10 h-12 border-gray-200 bg-white/50 backdrop-blur-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 ${
+                          errors.username ? "border-red-500 focus:border-red-500 focus:ring-red-500/20" : ""
+                        }`}
+                      />
+                    </div>
+                    {errors.username && (
+                      <p className="text-xs text-red-600 flex items-center gap-1">
+                        <AlertCircle className="w-3 h-3" />
+                        {errors.username.message}
                       </p>
                     )}
                   </div>

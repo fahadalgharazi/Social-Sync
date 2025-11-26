@@ -10,14 +10,23 @@ import errorHandler from './middlewares/errorHandler.js';
 
 const app = express();
 
-//rate limiter
-//tracks ip address and allows only 50 requests per 15 minutes
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 50, 
+// Rate limiter for general API routes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // 100 requests per window
   message: 'Too many requests, please try again later',
-  standardHeaders: true, 
+  standardHeaders: true,
   legacyHeaders: false,
+});
+
+// Stricter rate limiter for auth routes (prevent brute force attacks)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Only 10 attempts per window
+  message: 'Too many authentication attempts, please try again later',
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // Don't count successful logins
 });
 
 app.use(helmet());
@@ -30,8 +39,11 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// NEW - Apply rate limiting to all API routes
-app.use('/api/', limiter);
+// Apply strict rate limiting to auth endpoints (before routes)
+app.use('/api/auth', authLimiter);
+
+// Apply general rate limiting to all API routes
+app.use('/api', apiLimiter);
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });

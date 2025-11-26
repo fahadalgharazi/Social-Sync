@@ -42,17 +42,33 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
   try {
     // normalized and validated
     const {
-      email,      
-      password,   
-      firstName,  
-      lastName,   
-      zip,        
-      gender,     
-      bio,        
-      interests   
+      email,
+      password,
+      firstName,
+      lastName,
+      username,
+      zip,
+      gender,
+      bio,
+      interests
     } = req.body;
 
-    // 1. Create auth user in Supabase
+    // 1. Check if username already exists
+    const { data: existingUsername } = await supabaseAdmin
+      .from('user_data')
+      .select('username')
+      .eq('username', username)
+      .single();
+
+    if (existingUsername) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username already taken',
+        errors: { username: 'This username is already in use' }
+      });
+    }
+
+    // 2. Create auth user in Supabase
     const { data: authData, error: authError } = await supabaseAnon.auth.signUp({
       email,
       password
@@ -74,7 +90,7 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
       });
     }
 
-    // 2. Resolve ZIP code to geographic data
+    // 3. Resolve ZIP code to geographic data
     let geoData;
     try {
       geoData = await resolveZipCode(zip);
@@ -86,7 +102,7 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
       });
     }
 
-    // 3. Create user record in custom users table
+    // 4. Create user record in custom users table
     const { error: userInsertError } = await supabaseAdmin
       .from('users')
       .insert([{
@@ -103,13 +119,14 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
       });
     }
 
-    // 4. Create user profile data
+    // 5. Create user profile data
     const { error: profileError } = await supabaseAdmin
       .from('user_data')
       .upsert([{
         id: user.id,
         first_name: firstName,
         last_name: lastName,
+        username: username,
         gender: gender || null,
         bio: bio || null,
         city: geoData.city,
@@ -130,13 +147,14 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
       });
     }
 
-    // 5. Return success response
+    // 6. Return success response
     return res.status(201).json({
       success: true,
       message: 'Account created successfully',
       user: {
         id: user.id,
-        email: email
+        email: email,
+        username: username
       }
     });
 

@@ -7,7 +7,6 @@ import authGuard from '../middlewares/auth.js';
 const router = Router();
 
 router.use('/auth', authRouter);
-// router.use('/events', authGuard, eventsRouter);
-router.use('/events', eventsRouter);
-router.use('/questionnaire', questionnaireRouter);
+router.use('/events', authGuard, eventsRouter);
+router.use('/questionnaire', authGuard, questionnaireRouter);
 export default router;
