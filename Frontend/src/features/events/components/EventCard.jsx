@@ -1,8 +1,52 @@
-import { MapPin, Calendar, ExternalLink, Users } from "lucide-react";
+import { useState } from "react";
+import { MapPin, Calendar, ExternalLink, Users, UserCheck, Heart, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { addUserEvent, updateUserEventStatus, removeUserEvent } from "../api/userEventsApi";
+import { toast } from "sonner";
 
 export default function EventCard({ event }) {
+  const [userStatus, setUserStatus] = useState(event.userStatus || null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleStatusChange = async (newStatus) => {
+    if (isLoading) return;
+
+    try {
+      setIsLoading(true);
+
+      // If clicking the same status, remove the event
+      if (userStatus === newStatus) {
+        await removeUserEvent(event.id);
+        setUserStatus(null);
+        toast.success("Event removed from your list");
+        return;
+      }
+
+      // If user already has a status, update it
+      if (userStatus) {
+        await updateUserEventStatus(event.id, newStatus);
+        setUserStatus(newStatus);
+        toast.success(`Status updated to ${newStatus}`);
+      } else {
+        // Otherwise, add new event
+        await addUserEvent({
+          eventId: event.id,
+          eventName: event.name,
+          eventDate: event.date || new Date().toISOString(),
+          venueName: event.venueName,
+          status: newStatus,
+        });
+        setUserStatus(newStatus);
+        toast.success(`Added to ${newStatus} list`);
+      }
+    } catch (error) {
+      console.error("Error updating event status:", error);
+      toast.error(error.response?.data?.message || "Failed to update status");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <Card className="group bg-white/70 backdrop-blur-sm border-white/50 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
       {/* Event Image */}
@@ -49,6 +93,67 @@ export default function EventCard({ event }) {
               <span>{event.attendees} attending</span>
             </div>
           )}
+
+          {/* Friends Attending Badge */}
+          {event.friendsCount > 0 && (
+            <div className="flex items-center space-x-2 text-sm">
+              <UserCheck className="w-4 h-4 text-emerald-500" />
+              <span className="text-emerald-600 font-medium">
+                {event.friendsCount} {event.friendsCount === 1 ? 'friend' : 'friends'} attending
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Status Buttons */}
+        <div className="flex gap-2 mt-4">
+          <Button
+            onClick={() => handleStatusChange('interested')}
+            disabled={isLoading}
+            variant={userStatus === 'interested' ? 'default' : 'outline'}
+            className={`flex-1 transition-all duration-200 ${
+              userStatus === 'interested'
+                ? 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white'
+                : 'border-pink-300 text-pink-600 hover:bg-pink-50'
+            }`}
+            size="sm"
+          >
+            {userStatus === 'interested' ? (
+              <>
+                <Check className="w-4 h-4 mr-1" />
+                Interested
+              </>
+            ) : (
+              <>
+                <Heart className="w-4 h-4 mr-1" />
+                Interested
+              </>
+            )}
+          </Button>
+
+          <Button
+            onClick={() => handleStatusChange('going')}
+            disabled={isLoading}
+            variant={userStatus === 'going' ? 'default' : 'outline'}
+            className={`flex-1 transition-all duration-200 ${
+              userStatus === 'going'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white'
+                : 'border-emerald-300 text-emerald-600 hover:bg-emerald-50'
+            }`}
+            size="sm"
+          >
+            {userStatus === 'going' ? (
+              <>
+                <Check className="w-4 h-4 mr-1" />
+                Going
+              </>
+            ) : (
+              <>
+                <Users className="w-4 h-4 mr-1" />
+                Going
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Event Link */}

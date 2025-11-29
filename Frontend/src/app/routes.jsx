@@ -5,6 +5,9 @@ import LoginPage from "../pages/LoginPage.jsx";
 import SignUpPage from "../pages/SignUpPage.jsx";
 import QuestionnairePage from "../pages/QuestionnairePage.jsx";
 import EventsPage from "../pages/EventsPage.jsx";
+import FriendsPage from "../features/friends/pages/FriendsPage.jsx";
+import ProfilePage from "../features/profile/pages/ProfilePage.jsx";
+import GroupsPage from "../features/groups/pages/GroupsPage.jsx";
 import AuthGuard from "../features/auth/components/AuthGuard.jsx";
 
 export const router = createBrowserRouter([
@@ -28,6 +31,30 @@ export const router = createBrowserRouter([
         element: (
           <AuthGuard>
             <EventsPage />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "friends",
+        element: (
+          <AuthGuard>
+            <FriendsPage />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "profile",
+        element: (
+          <AuthGuard>
+            <ProfilePage />
+          </AuthGuard>
+        ),
+      },
+      {
+        path: "groups",
+        element: (
+          <AuthGuard>
+            <GroupsPage />
           </AuthGuard>
         ),
       },

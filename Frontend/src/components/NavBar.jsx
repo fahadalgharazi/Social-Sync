@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   CalendarSearch,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -157,6 +158,24 @@ export default function Navbar({ variant = "dashboard" }) {
                   Events
                 </Button>
               </Link>
+              <Link to={"/friends"}>
+                <Button
+                  variant="ghost"
+                  className="text-base text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/50 [&>svg]:!size-7"
+                >
+                  <Users className="w-6 h-6 mr-2" />
+                  Friends
+                </Button>
+              </Link>
+              <Link to={"/groups"}>
+                <Button
+                  variant="ghost"
+                  className="text-base text-gray-700 hover:text-indigo-600 hover:bg-indigo-50/50 [&>svg]:!size-7"
+                >
+                  <Users className="w-6 h-6 mr-2" />
+                  Groups
+                </Button>
+              </Link>
               <Link to={"/questionnaire"}>
                 <Button
                   variant="ghost"
@@ -170,9 +189,11 @@ export default function Navbar({ variant = "dashboard" }) {
 
             {/* Right Side */}
             <div className="hidden md:flex items-center space-x-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow">
-                <User className="w-4 h-4 text-white" />
-              </div>
+              <Link to={"/profile"}>
+                <div className="w-8 h-8 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center cursor-pointer hover:shadow-lg transition-shadow">
+                  <User className="w-4 h-4 text-white" />
+                </div>
+              </Link>
             </div>
 
             {/* Mobile menu button */}
