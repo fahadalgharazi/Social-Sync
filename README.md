@@ -55,3 +55,28 @@
   ### 5. Environment Variables
 
   See .env.example files in Backend/ and Frontend/ folders for required variables.
+
+## Testing
+
+Social-Sync includes comprehensive automated tests for both backend and frontend.
+
+### Running Backend Tests
+
+```bash
+cd Backend
+npm test                  # Run all tests
+npm run test:watch        # Run in watch mode
+npm run test:coverage     # Run with coverage report
+```
+
+### Running Frontend Tests
+
+```bash
+cd Frontend
+npm test                  # Run all tests
+npm run test:watch        # Run in watch mode
+npm run test:coverage     # Run with coverage report
+npm run test:ui           # Run with interactive UI
+```
+
+📖 For detailed testing documentation, see [TESTING.md](./TESTING.md)
