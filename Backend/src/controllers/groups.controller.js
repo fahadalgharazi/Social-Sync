@@ -28,7 +28,7 @@ export async function getUserGroups(req, res, next) {
 
     const groups = await GroupsService.getUserGroups(userId);
 
-    return ok(res, { groups, count: groups.length }, 'Groups retrieved successfully');
+    return ok(res, groups, 'Groups retrieved successfully');
   } catch (error) {
     next(error);
   }
@@ -109,7 +109,7 @@ export async function getGroupMembers(req, res, next) {
 
     const members = await GroupsService.getGroupMembers(groupId, userId);
 
-    return ok(res, { members, count: members.length }, 'Members retrieved successfully');
+    return ok(res, members, 'Members retrieved successfully');
   } catch (error) {
     if (error.message.includes('denied')) {
       return sendError(res, 403, error.message);

@@ -37,7 +37,7 @@ export async function getFriends(req, res, next) {
 
     const friends = await FriendsService.getFriends(userId);
 
-    return ok(res, { friends, count: friends.length }, 'Friends retrieved successfully');
+    return ok(res, friends, 'Friends retrieved successfully');
   } catch (error) {
     next(error);
   }
@@ -53,7 +53,7 @@ export async function getPendingRequests(req, res, next) {
 
     const requests = await FriendsService.getPendingRequests(userId);
 
-    return ok(res, { requests, count: requests.length }, 'Pending requests retrieved successfully');
+    return ok(res, requests, 'Pending requests retrieved successfully');
   } catch (error) {
     next(error);
   }
@@ -69,7 +69,7 @@ export async function getSentRequests(req, res, next) {
 
     const requests = await FriendsService.getSentRequests(userId);
 
-    return ok(res, { requests, count: requests.length }, 'Sent requests retrieved successfully');
+    return ok(res, requests, 'Sent requests retrieved successfully');
   } catch (error) {
     next(error);
   }

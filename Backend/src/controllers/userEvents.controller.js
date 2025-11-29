@@ -32,7 +32,7 @@ export async function getEvents(req, res, next) {
 
     const events = await UserEventsService.getUserEvents(userId, status);
 
-    return ok(res, { events, count: events.length }, 'Events retrieved successfully');
+    return ok(res, events, 'Events retrieved successfully');
   } catch (error) {
     next(error);
   }
@@ -100,7 +100,7 @@ export async function getFriendsAttendingEvent(req, res, next) {
 
     const friends = await UserEventsService.getFriendsAttendingEvent(userId, eventId);
 
-    return ok(res, { friends, count: friends.length }, 'Attendees retrieved successfully');
+    return ok(res, friends, 'Attendees retrieved successfully');
   } catch (error) {
     next(error);
   }
