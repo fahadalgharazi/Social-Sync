@@ -115,6 +115,19 @@ export default function ProfilePage() {
                 {user?.username && (
                   <p className="text-lg text-gray-600 mb-2">@{user.username}</p>
                 )}
+                {user?.bio && (
+                  <p className="text-gray-700 mb-3">{user.bio}</p>
+                )}
+                {(user?.city || user?.state) && (
+                  <div className="flex items-center gap-2 mb-3 text-gray-600">
+                    <MapPin className="w-4 h-4" />
+                    <span>
+                      {user.city}
+                      {user.city && user.state && ", "}
+                      {user.state}
+                    </span>
+                  </div>
+                )}
 
                 {/* Edit Profile Picture URL */}
                 {editingPicture && (
