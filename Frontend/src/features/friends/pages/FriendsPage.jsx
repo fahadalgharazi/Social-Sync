@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { Users, UserPlus, UserCheck, UserMinus, Check, X, Loader2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Users, UserPlus, UserCheck, UserMinus, Check, X, Loader2, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   getFriends,
@@ -9,14 +11,21 @@ import {
   getSentRequests,
   respondToRequest,
   unfriend,
+  sendFriendRequest,
 } from "../api/friendsApi";
+import { searchUsers } from "../../users/api/usersApi";
 
 export default function FriendsPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("friends");
   const [friends, setFriends] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [sentRequests, setSentRequests] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -78,6 +87,50 @@ export default function FriendsPage() {
     }
   };
 
+  const handleSearch = async (query) => {
+    if (!query || query.trim().length === 0) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      setSearching(true);
+      const results = await searchUsers(query);
+      setSearchResults(results);
+    } catch (error) {
+      console.error("Error searching users:", error);
+      toast.error("Failed to search users");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleSendRequest = async (userId, userName) => {
+    try {
+      await sendFriendRequest(userId);
+      toast.success(`Friend request sent to ${userName}!`);
+      // Update the search results to reflect the new status
+      setSearchResults(searchResults.map(user =>
+        user.id === userId ? { ...user, friendshipStatus: 'request_sent' } : user
+      ));
+      await loadData();
+    } catch (error) {
+      console.error("Error sending friend request:", error);
+      toast.error(error.response?.data?.message || "Failed to send friend request");
+    }
+  };
+
+  // Debounced search
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchQuery && showSearch) {
+        handleSearch(searchQuery);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, showSearch]);
+
   const tabs = [
     {
       id: "friends",
@@ -111,10 +164,106 @@ export default function FriendsPage() {
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Friends</h1>
           <p className="text-gray-600">Manage your connections and friend requests</p>
         </div>
+
+        {/* Search Section */}
+        <Card className="mb-6 bg-white/70 backdrop-blur-sm border-white/50 shadow-md">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  type="text"
+                  placeholder="Search for users by name or username..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowSearch(true);
+                  }}
+                  onFocus={() => setShowSearch(true)}
+                  className="pl-10 bg-white"
+                />
+              </div>
+              {searchQuery && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSearchResults([]);
+                    setShowSearch(false);
+                  }}
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            {/* Search Results */}
+            {showSearch && searchQuery && (
+              <div className="mt-4 space-y-2">
+                {searching ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+                  </div>
+                ) : searchResults.length === 0 ? (
+                  <p className="text-center text-gray-500 py-4">No users found</p>
+                ) : (
+                  searchResults.map((user) => (
+                    <div
+                      key={user.id}
+                      className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                          {user.first_name?.[0]}{user.last_name?.[0]}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">
+                            {user.first_name} {user.last_name}
+                          </h4>
+                          {user.username && (
+                            <p className="text-sm text-gray-500">@{user.username}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        {user.friendshipStatus === 'friends' && (
+                          <span className="px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                            Friends
+                          </span>
+                        )}
+                        {user.friendshipStatus === 'request_sent' && (
+                          <span className="px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-sm font-medium">
+                            Request Sent
+                          </span>
+                        )}
+                        {user.friendshipStatus === 'request_received' && (
+                          <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                            Request Received
+                          </span>
+                        )}
+                        {user.friendshipStatus === 'none' && (
+                          <Button
+                            onClick={() => handleSendRequest(user.id, `${user.first_name} ${user.last_name}`)}
+                            size="sm"
+                            className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
+                          >
+                            <UserPlus className="w-4 h-4 mr-1" />
+                            Add Friend
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 flex-wrap">
@@ -166,7 +315,8 @@ export default function FriendsPage() {
                 friends.map((friend) => (
                   <Card
                     key={friend.id}
-                    className="bg-white/70 backdrop-blur-sm border-white/50 shadow-md hover:shadow-lg transition-all"
+                    className="bg-white/70 backdrop-blur-sm border-white/50 shadow-md hover:shadow-lg transition-all cursor-pointer"
+                    onClick={() => navigate(`/friends/${friend.id}`)}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
@@ -184,9 +334,10 @@ export default function FriendsPage() {
                           </div>
                         </div>
                         <Button
-                          onClick={() =>
-                            handleUnfriend(friend.id, `${friend.first_name} ${friend.last_name}`)
-                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUnfriend(friend.id, `${friend.first_name} ${friend.last_name}`);
+                          }}
                           variant="outline"
                           size="sm"
                           className="text-red-600 border-red-300 hover:bg-red-50"
