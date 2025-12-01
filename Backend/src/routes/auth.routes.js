@@ -250,12 +250,31 @@ router.get('/me', async (req, res) => {
     .eq('id', data.user.id)
     .single();
 
+  if (userError) {
+    console.error('[/auth/me] Error fetching user_data:', userError);
+    // Return basic user data if profile fetch fails
+    return res.json({
+      success: true,
+      user: {
+        id: data.user.id,
+        email: data.user.email
+      }
+    });
+  }
+
+  console.log('[/auth/me] User data fetched successfully:', {
+    id: userData.id,
+    username: userData.username,
+    hasProfilePic: !!userData.profile_picture_url,
+    hasBio: !!userData.bio
+  });
+
   return res.json({
     success: true,
     user: {
       id: data.user.id,
       email: data.user.email,
-      ...(userData || {})
+      ...userData
     }
   });
 });
