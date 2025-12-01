@@ -1,16 +1,21 @@
 import { useState, useEffect } from "react";
-import { User, Calendar, Heart, Users, MapPin, ExternalLink, Loader2 } from "lucide-react";
+import { User, Calendar, Heart, Users, MapPin, ExternalLink, Loader2, Edit2, Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { getUserEvents } from "../../events/api/userEventsApi";
 import { getMe } from "../../events/api/eventsApi";
+import { updateProfile } from "../api/profileApi";
 
 export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("going");
   const [events, setEvents] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [editingPicture, setEditingPicture] = useState(false);
+  const [pictureUrl, setPictureUrl] = useState("");
 
   useEffect(() => {
     loadData();
@@ -25,12 +30,30 @@ export default function ProfilePage() {
       ]);
       setEvents(userEventsData);
       setUser(userData);
+      setPictureUrl(userData?.profile_picture_url || "");
     } catch (error) {
       console.error("Error loading profile data:", error);
       toast.error("Failed to load profile");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleUpdatePicture = async () => {
+    try {
+      const updated = await updateProfile({ profile_picture_url: pictureUrl });
+      setUser({ ...user, ...updated });
+      setEditingPicture(false);
+      toast.success("Profile picture updated!");
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      toast.error("Failed to update profile picture");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setPictureUrl(user?.profile_picture_url || "");
+    setEditingPicture(false);
   };
 
   const goingEvents = events.filter((e) => e.status === "going");
@@ -67,17 +90,60 @@ export default function ProfilePage() {
         {/* Profile Header */}
         <Card className="bg-white/70 backdrop-blur-sm border-white/50 shadow-lg mb-8">
           <CardContent className="p-8">
-            <div className="flex items-center gap-6">
-              <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-lg">
-                {user?.first_name?.[0]}{user?.last_name?.[0]}
+            <div className="flex items-start gap-6">
+              <div className="relative">
+                <Avatar
+                  src={user?.profile_picture_url}
+                  firstName={user?.first_name}
+                  lastName={user?.last_name}
+                  size="xl"
+                  className="shadow-lg"
+                />
+                {!editingPicture && (
+                  <button
+                    onClick={() => setEditingPicture(true)}
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-lg transition-colors"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                )}
               </div>
-              <div>
+              <div className="flex-1">
                 <h1 className="text-3xl font-bold text-gray-900 mb-1">
                   {user?.first_name} {user?.last_name}
                 </h1>
                 {user?.username && (
                   <p className="text-lg text-gray-600 mb-2">@{user.username}</p>
                 )}
+
+                {/* Edit Profile Picture URL */}
+                {editingPicture && (
+                  <div className="mt-4 mb-4 flex gap-2">
+                    <Input
+                      type="url"
+                      placeholder="Enter image URL"
+                      value={pictureUrl}
+                      onChange={(e) => setPictureUrl(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      onClick={handleUpdatePicture}
+                      size="sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                    >
+                      <Check className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      onClick={handleCancelEdit}
+                      size="sm"
+                      variant="outline"
+                      className="text-red-600 border-red-300"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+
                 <div className="flex gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
                     <Calendar className="w-4 h-4" />

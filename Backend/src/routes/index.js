@@ -6,6 +6,7 @@ import friendsRouter from './friends.routes.js';
 import userEventsRouter from './userEvents.routes.js';
 import groupsRouter from './groups.routes.js';
 import usersRouter from './users.routes.js';
+import profileRouter from './profile.routes.js';
 import authGuard from '../middlewares/auth.js';
 
 const router = Router();
@@ -17,4 +18,5 @@ router.use('/friends', authGuard, friendsRouter);
 router.use('/user-events', authGuard, userEventsRouter);
 router.use('/groups', authGuard, groupsRouter);
 router.use('/users', authGuard, usersRouter);
+router.use('/profile', authGuard, profileRouter);
 export default router;

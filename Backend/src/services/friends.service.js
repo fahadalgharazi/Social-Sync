@@ -85,7 +85,7 @@ export async function getFriends(userId) {
   // Get friend profiles
   const { data: friends, error: profileError } = await supabaseAdmin
     .from('user_data')
-    .select('id, username, first_name, last_name, bio, city, state')
+    .select('id, username, first_name, last_name, bio, city, state, profile_picture_url')
     .in('id', friendIds);
 
   if (profileError) {
@@ -118,7 +118,7 @@ export async function getPendingRequests(userId) {
   const requesterIds = requests.map((r) => r.user_id);
   const { data: profiles, error: profileError } = await supabaseAdmin
     .from('user_data')
-    .select('id, username, first_name, last_name, bio')
+    .select('id, username, first_name, last_name, bio, profile_picture_url')
     .in('id', requesterIds);
 
   if (profileError) {
@@ -238,7 +238,7 @@ export async function getSentRequests(userId) {
   const recipientIds = requests.map((r) => r.friend_id);
   const { data: profiles, error: profileError } = await supabaseAdmin
     .from('user_data')
-    .select('id, username, first_name, last_name')
+    .select('id, username, first_name, last_name, profile_picture_url')
     .in('id', recipientIds);
 
   if (profileError) {

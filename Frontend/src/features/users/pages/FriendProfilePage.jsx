@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Calendar, MapPin, Heart, Users, Loader2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Avatar } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { getUserProfile } from "../api/usersApi";
 import { getFriendEvents } from "../api/friendEventsApi";
@@ -84,9 +85,12 @@ export default function FriendProfilePage() {
         <Card className="mb-8 bg-white/70 backdrop-blur-sm border-white/50 shadow-lg">
           <CardContent className="p-8">
             <div className="flex items-center gap-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-3xl">
-                {friend.first_name?.[0]}{friend.last_name?.[0]}
-              </div>
+              <Avatar
+                src={friend.profile_picture_url}
+                firstName={friend.first_name}
+                lastName={friend.last_name}
+                size="xl"
+              />
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-gray-900 mb-1">
                   {friend.first_name} {friend.last_name}
@@ -95,10 +99,10 @@ export default function FriendProfilePage() {
                   <p className="text-lg text-gray-600 mb-2">@{friend.username}</p>
                 )}
                 {friend.bio && (
-                  <p className="text-gray-700">{friend.bio}</p>
+                  <p className="text-gray-700 mb-2">{friend.bio}</p>
                 )}
                 {(friend.city || friend.state) && (
-                  <div className="flex items-center gap-2 mt-3 text-gray-600">
+                  <div className="flex items-center gap-2 text-gray-600">
                     <MapPin className="w-4 h-4" />
                     <span>
                       {friend.city}

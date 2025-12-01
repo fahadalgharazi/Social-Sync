@@ -243,11 +243,19 @@ router.get('/me', async (req, res) => {
     });
   }
 
+  // Fetch user profile data
+  const { data: userData, error: userError } = await supabaseAdmin
+    .from('user_data')
+    .select('id, username, first_name, last_name, bio, city, state, profile_picture_url')
+    .eq('id', data.user.id)
+    .single();
+
   return res.json({
     success: true,
     user: {
       id: data.user.id,
-      email: data.user.email
+      email: data.user.email,
+      ...(userData || {})
     }
   });
 });

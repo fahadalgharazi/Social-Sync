@@ -4,6 +4,7 @@ import { Users, UserPlus, UserCheck, UserMinus, Check, X, Loader2, Search } from
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Avatar } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import {
   getFriends,
@@ -218,15 +219,21 @@ export default function FriendsPage() {
                       className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                          {user.first_name?.[0]}{user.last_name?.[0]}
-                        </div>
+                        <Avatar
+                          src={user.profile_picture_url}
+                          firstName={user.first_name}
+                          lastName={user.last_name}
+                          size="sm"
+                        />
                         <div>
                           <h4 className="font-semibold text-gray-900">
                             {user.first_name} {user.last_name}
                           </h4>
                           {user.username && (
                             <p className="text-sm text-gray-500">@{user.username}</p>
+                          )}
+                          {user.bio && (
+                            <p className="text-xs text-gray-400 line-clamp-1 mt-0.5">{user.bio}</p>
                           )}
                         </div>
                       </div>
@@ -321,9 +328,12 @@ export default function FriendsPage() {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                            {friend.first_name?.[0]}{friend.last_name?.[0]}
-                          </div>
+                          <Avatar
+                            src={friend.profile_picture_url}
+                            firstName={friend.first_name}
+                            lastName={friend.last_name}
+                            size="md"
+                          />
                           <div>
                             <h3 className="font-semibold text-gray-900">
                               {friend.first_name} {friend.last_name}
@@ -374,20 +384,23 @@ export default function FriendsPage() {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                            {request.requester?.first_name?.[0]}{request.requester?.last_name?.[0]}
-                          </div>
+                          <Avatar
+                            src={request.profile_picture_url}
+                            firstName={request.first_name}
+                            lastName={request.last_name}
+                            size="md"
+                          />
                           <div>
                             <h3 className="font-semibold text-gray-900">
-                              {request.requester?.first_name} {request.requester?.last_name}
+                              {request.first_name} {request.last_name}
                             </h3>
-                            {request.requester?.username && (
+                            {request.username && (
                               <p className="text-sm text-gray-500">
-                                @{request.requester.username}
+                                @{request.username}
                               </p>
                             )}
                             <p className="text-xs text-gray-400 mt-1">
-                              {new Date(request.created_at).toLocaleDateString()}
+                              {new Date(request.requestedAt).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
@@ -439,18 +452,21 @@ export default function FriendsPage() {
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                            {request.receiver?.first_name?.[0]}{request.receiver?.last_name?.[0]}
-                          </div>
+                          <Avatar
+                            src={request.profile_picture_url}
+                            firstName={request.first_name}
+                            lastName={request.last_name}
+                            size="md"
+                          />
                           <div>
                             <h3 className="font-semibold text-gray-900">
-                              {request.receiver?.first_name} {request.receiver?.last_name}
+                              {request.first_name} {request.last_name}
                             </h3>
-                            {request.receiver?.username && (
-                              <p className="text-sm text-gray-500">@{request.receiver.username}</p>
+                            {request.username && (
+                              <p className="text-sm text-gray-500">@{request.username}</p>
                             )}
                             <p className="text-xs text-gray-400 mt-1">
-                              Sent {new Date(request.created_at).toLocaleDateString()}
+                              Sent {new Date(request.requestedAt).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
