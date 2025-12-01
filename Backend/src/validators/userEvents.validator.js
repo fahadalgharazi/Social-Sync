@@ -6,7 +6,19 @@ import { z } from 'zod';
 export const addUserEventSchema = z.object({
   event_id: z.string().min(1, 'Event ID is required'),
   event_name: z.string().min(1, 'Event name is required'),
-  event_date: z.string().datetime('Invalid date format'),
+  event_date: z
+    .string()
+    .min(1, 'Event date is required')
+    .refine(
+      (val) => {
+        // Accept any string that can be parsed as a valid date
+        const parsed = Date.parse(val);
+        return !isNaN(parsed);
+      },
+      {
+        message: 'Invalid date format - must be a valid date string',
+      }
+    ),
   venue_name: z.string().optional(),
   venue_city: z.string().optional(),
   venue_state: z.string().max(2).optional(),

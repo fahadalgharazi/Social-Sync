@@ -5,6 +5,33 @@ import { Button } from "@/components/ui/button";
 import { addUserEvent, updateUserEventStatus, removeUserEvent } from "../api/userEventsApi";
 import { toast } from "sonner";
 
+/**
+ * Format event date and time into a valid ISO datetime string
+ * Handles various date formats from Ticketmaster API
+ */
+function formatEventDateTime(date, time) {
+  if (!date) {
+    // Fallback to current time if no date provided
+    return new Date().toISOString();
+  }
+
+  try {
+    // If date already includes time info (ISO 8601 format), use it directly
+    if (date.includes('T')) {
+      return new Date(date).toISOString();
+    }
+
+    // Combine date and time
+    // date format: "2024-12-15"
+    // time format: "19:00:00" or empty
+    const dateTimeString = time ? `${date}T${time}` : `${date}T00:00:00`;
+    return new Date(dateTimeString).toISOString();
+  } catch (error) {
+    console.error('Error formatting event datetime:', error);
+    return new Date().toISOString();
+  }
+}
+
 export default function EventCard({ event }) {
   const [userStatus, setUserStatus] = useState(event.userStatus || null);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,7 +60,7 @@ export default function EventCard({ event }) {
         await addUserEvent({
           eventId: event.id,
           eventName: event.name,
-          eventDate: event.date || new Date().toISOString(),
+          eventDate: formatEventDateTime(event.date, event.time),
           venueName: event.venueName,
           status: newStatus,
         });
