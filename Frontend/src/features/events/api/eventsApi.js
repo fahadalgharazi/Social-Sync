@@ -27,5 +27,10 @@ export async function getPersonalities() {
 /** Get current user (cookie-based session) */
 export async function getMe() {
   const { data } = await http.get("/auth/me");
+  console.log('[getMe] Response from /auth/me:', {
+    hasData: !!data,
+    hasUser: !!data?.user,
+    userData: data?.user,
+  });
   return data?.user || null;
 }
