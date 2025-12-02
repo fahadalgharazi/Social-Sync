@@ -105,7 +105,8 @@ function formatZodErrors(error) {
 export const validateQuery = (schema) => {
   return (req, res, next) => {
     try {
-      req.query = schema.parse(req.query);
+      // Validate query params - don't try to reassign req.query as it's read-only
+      schema.parse(req.query);
       next();
     } catch (error) {
       if (error instanceof ZodError) {
