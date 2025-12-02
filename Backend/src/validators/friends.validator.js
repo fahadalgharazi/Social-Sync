@@ -9,9 +9,9 @@ export const sendFriendRequestSchema = z.object({
 
 /**
  * Friend Request Response Validator (for accept/reject)
+ * Note: requestId is in URL params, not body
  */
 export const respondToRequestSchema = z.object({
-  requestId: z.string().uuid('Invalid request ID'),
   action: z.enum(['accept', 'reject'], {
     errorMap: () => ({ message: 'Action must be either "accept" or "reject"' }),
   }),
