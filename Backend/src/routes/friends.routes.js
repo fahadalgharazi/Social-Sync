@@ -6,6 +6,12 @@ import { sendFriendRequestSchema, respondToRequestSchema } from '../validators/f
 
 const router = Router();
 
+// Debug logging middleware
+router.use((req, res, next) => {
+  console.log('[FRIENDS ROUTER] Method:', req.method, 'Path:', req.path, 'Params:', req.params);
+  next();
+});
+
 // Send a friend request
 router.post('/request', validate(sendFriendRequestSchema), asyncHandler(FriendsController.sendRequest));
 
@@ -19,7 +25,14 @@ router.get('/requests/pending', asyncHandler(FriendsController.getPendingRequest
 router.get('/requests/sent', asyncHandler(FriendsController.getSentRequests));
 
 // Respond to a friend request (accept/reject)
-router.post('/requests/:requestId/respond', validate(respondToRequestSchema), asyncHandler(FriendsController.respondToRequest));
+router.post('/requests/:requestId/respond',
+  (req, res, next) => {
+    console.log('[DEBUG] Respond route hit - requestId:', req.params.requestId, 'body:', req.body);
+    next();
+  },
+  validate(respondToRequestSchema),
+  asyncHandler(FriendsController.respondToRequest)
+);
 
 // Unfriend a user
 router.delete('/:friendId', asyncHandler(FriendsController.unfriend));
