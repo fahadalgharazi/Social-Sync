@@ -13,12 +13,13 @@ export async function searchUsers(query, currentUserId, limit = 20) {
   // Search users by username, first_name, or last_name (case-insensitive)
   const { data: users, error } = await supabaseAdmin
     .from('user_data')
-    .select('id, username, first_name, last_name, bio, city, state, profile_picture_url')
+    .select('id, username, first_name, last_name, bio, city, state')
     .or(`username.ilike.${searchTerm},first_name.ilike.${searchTerm},last_name.ilike.${searchTerm}`)
     .neq('id', currentUserId) // Exclude current user
     .limit(limit);
 
   if (error) {
+    console.error('[searchUsers] Database error:', error);
     throw new Error('Failed to search users');
   }
 
@@ -78,11 +79,12 @@ export async function searchUsers(query, currentUserId, limit = 20) {
 export async function getUserProfile(userId) {
   const { data: user, error } = await supabaseAdmin
     .from('user_data')
-    .select('id, username, first_name, last_name, bio, city, state, profile_picture_url')
+    .select('id, username, first_name, last_name, bio, city, state')
     .eq('id', userId)
     .single();
 
   if (error || !user) {
+    console.error('[getUserProfile] Database error:', error);
     throw new Error('User not found');
   }
 
