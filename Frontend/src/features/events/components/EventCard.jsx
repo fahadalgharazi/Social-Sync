@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MapPin, Calendar, ExternalLink, Users, UserCheck, Heart, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +35,14 @@ function formatEventDateTime(date, time) {
 export default function EventCard({ event }) {
   const [userStatus, setUserStatus] = useState(event.userStatus || null);
   const [isLoading, setIsLoading] = useState(false);
+  const isMountedRef = useRef(true);
+
+  // Cleanup on unmount to prevent state updates
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const handleStatusChange = async (newStatus) => {
     if (isLoading) return;
@@ -45,16 +53,20 @@ export default function EventCard({ event }) {
       // If clicking the same status, remove the event
       if (userStatus === newStatus) {
         await removeUserEvent(event.id);
-        setUserStatus(null);
-        toast.success("Event removed from your list");
+        if (isMountedRef.current) {
+          setUserStatus(null);
+          toast.success("Event removed from your list");
+        }
         return;
       }
 
       // If user already has a status, update it
       if (userStatus) {
         await updateUserEventStatus(event.id, newStatus);
-        setUserStatus(newStatus);
-        toast.success(`Status updated to ${newStatus}`);
+        if (isMountedRef.current) {
+          setUserStatus(newStatus);
+          toast.success(`Status updated to ${newStatus}`);
+        }
       } else {
         // Otherwise, add new event
         await addUserEvent({
@@ -64,14 +76,20 @@ export default function EventCard({ event }) {
           venueName: event.venueName,
           status: newStatus,
         });
-        setUserStatus(newStatus);
-        toast.success(`Added to ${newStatus} list`);
+        if (isMountedRef.current) {
+          setUserStatus(newStatus);
+          toast.success(`Added to ${newStatus} list`);
+        }
       }
     } catch (error) {
       console.error("Error updating event status:", error);
-      toast.error(error.response?.data?.message || "Failed to update status");
+      if (isMountedRef.current) {
+        toast.error(error.response?.data?.message || "Failed to update status");
+      }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
   return (

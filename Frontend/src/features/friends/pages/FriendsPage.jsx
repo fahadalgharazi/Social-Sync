@@ -107,17 +107,23 @@ export default function FriendsPage() {
   };
 
   const handleSendRequest = async (userId, userName) => {
+    // Optimistically update UI
+    setSearchResults(searchResults.map(user =>
+      user.id === userId ? { ...user, friendshipStatus: 'request_sent' } : user
+    ));
+
     try {
       await sendFriendRequest(userId);
       toast.success(`Friend request sent to ${userName}!`);
-      // Update the search results to reflect the new status
-      setSearchResults(searchResults.map(user =>
-        user.id === userId ? { ...user, friendshipStatus: 'request_sent' } : user
-      ));
+      // Reload friend data to keep sent requests list in sync
       await loadData();
     } catch (error) {
       console.error("Error sending friend request:", error);
       toast.error(error.response?.data?.message || "Failed to send friend request");
+      // Revert optimistic update on error
+      setSearchResults(searchResults.map(user =>
+        user.id === userId ? { ...user, friendshipStatus: 'none' } : user
+      ));
     }
   };
 
@@ -378,7 +384,7 @@ export default function FriendsPage() {
               ) : (
                 pendingRequests.map((request) => (
                   <Card
-                    key={request.id}
+                    key={request.requestId}
                     className="bg-white/70 backdrop-blur-sm border-white/50 shadow-md hover:shadow-lg transition-all"
                   >
                     <CardContent className="p-6">
@@ -406,7 +412,7 @@ export default function FriendsPage() {
                         </div>
                         <div className="flex gap-2">
                           <Button
-                            onClick={() => handleAcceptRequest(request.id)}
+                            onClick={() => handleAcceptRequest(request.requestId)}
                             size="sm"
                             className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
                           >
@@ -414,7 +420,7 @@ export default function FriendsPage() {
                             Accept
                           </Button>
                           <Button
-                            onClick={() => handleRejectRequest(request.id)}
+                            onClick={() => handleRejectRequest(request.requestId)}
                             variant="outline"
                             size="sm"
                             className="text-red-600 border-red-300 hover:bg-red-50"
@@ -446,7 +452,7 @@ export default function FriendsPage() {
               ) : (
                 sentRequests.map((request) => (
                   <Card
-                    key={request.id}
+                    key={request.requestId}
                     className="bg-white/70 backdrop-blur-sm border-white/50 shadow-md"
                   >
                     <CardContent className="p-6">

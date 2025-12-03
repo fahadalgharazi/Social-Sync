@@ -262,13 +262,6 @@ router.get('/me', async (req, res) => {
     });
   }
 
-  console.log('[/auth/me] User data fetched successfully:', {
-    id: userData.id,
-    username: userData.username,
-    hasProfilePic: !!userData.profile_picture_url,
-    hasBio: !!userData.bio
-  });
-
   return res.json({
     success: true,
     user: {

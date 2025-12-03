@@ -2,6 +2,34 @@ import * as TM from './ticketmaster.client.js';
 import { supabaseAdmin } from '../config/supabase.js';
 
 /**
+ * Get user's status for multiple events
+ * Returns a map of eventId -> status
+ */
+async function getUserEventStatuses(userId, eventIds) {
+  if (!eventIds || eventIds.length === 0) {
+    return {};
+  }
+
+  const { data: userEvents, error } = await supabaseAdmin
+    .from('user_events')
+    .select('event_id, status')
+    .eq('user_id', userId)
+    .in('event_id', eventIds);
+
+  if (error || !userEvents) {
+    return {};
+  }
+
+  // Build map of eventId -> status
+  const statusMap = {};
+  userEvents.forEach((userEvent) => {
+    statusMap[userEvent.event_id] = userEvent.status;
+  });
+
+  return statusMap;
+}
+
+/**
  * Get friends attending multiple events
  * Returns a map of eventId -> array of friends
  */
@@ -113,16 +141,21 @@ export async function search({ userId, personalityType, limit = 20, page = 0 }) 
     z, // optional; safe if undefined
     radius: 100, // in miles; adjust as needed
   });
-  console.log('Events search result:', result, type, gRow.geohash);
 
-  // Enrich events with friends attending
+  // Enrich events with user status and friends attending
   if (result.items && result.items.length > 0) {
     const eventIds = result.items.map((event) => event.id);
-    const friendsByEvent = await getFriendsAttendingEvents(userId, eventIds);
 
-    // Add friends to each event
+    // Fetch both user statuses and friends attending in parallel
+    const [userStatuses, friendsByEvent] = await Promise.all([
+      getUserEventStatuses(userId, eventIds),
+      getFriendsAttendingEvents(userId, eventIds)
+    ]);
+
+    // Add user status and friends to each event
     result.items = result.items.map((event) => ({
       ...event,
+      userStatus: userStatuses[event.id] || null,
       friendsAttending: friendsByEvent[event.id] || [],
       friendsCount: (friendsByEvent[event.id] || []).length,
     }));
