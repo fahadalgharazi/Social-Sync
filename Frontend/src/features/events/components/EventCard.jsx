@@ -37,6 +37,11 @@ export default function EventCard({ event }) {
   const [isLoading, setIsLoading] = useState(false);
   const isMountedRef = useRef(true);
 
+  // Sync userStatus when event.userStatus changes
+  useEffect(() => {
+    setUserStatus(event.userStatus || null);
+  }, [event.userStatus]);
+
   // Cleanup on unmount to prevent state updates
   useEffect(() => {
     return () => {

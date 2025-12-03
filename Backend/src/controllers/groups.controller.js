@@ -45,7 +45,7 @@ export async function getGroup(req, res, next) {
 
     const group = await GroupsService.getGroup(groupId, userId);
 
-    return ok(res, { group }, 'Group retrieved successfully');
+    return ok(res, group, 'Group retrieved successfully');
   } catch (error) {
     if (error.message.includes('not found')) {
       return sendError(res, 404, error.message);

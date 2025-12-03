@@ -190,19 +190,22 @@ export default function GroupsPage() {
               <div className="space-y-3">
                 {groupMembers.map((member) => (
                   <div
-                    key={member.user_id}
+                    key={member.id}
                     className="flex items-center justify-between p-4 bg-white/50 rounded-lg"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {member.profile?.first_name?.[0]}{member.profile?.last_name?.[0]}
-                      </div>
+                      <Avatar
+                        src={member.profile_picture_url}
+                        firstName={member.first_name}
+                        lastName={member.last_name}
+                        size="sm"
+                      />
                       <div>
                         <p className="font-medium text-gray-900">
-                          {member.profile?.first_name} {member.profile?.last_name}
+                          {member.first_name} {member.last_name}
                         </p>
-                        {member.profile?.username && (
-                          <p className="text-sm text-gray-500">@{member.profile.username}</p>
+                        {member.username && (
+                          <p className="text-sm text-gray-500">@{member.username}</p>
                         )}
                       </div>
                     </div>
@@ -222,7 +225,7 @@ export default function GroupsPage() {
           </Card>
 
           {/* Add Member Modal */}
-          {showAddMemberModal && (
+          {showAddMemberModal && selectedGroup?.id && (
             <AddMemberModal
               groupId={selectedGroup.id}
               existingMembers={groupMembers}
