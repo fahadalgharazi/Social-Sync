@@ -142,6 +142,15 @@ export async function getPendingRequests(userId) {
 export async function acceptFriendRequest(userId, requestId) {
   console.log('[acceptFriendRequest] userId:', userId, 'requestId:', requestId);
 
+  // First, check if the request exists at all
+  const { data: checkRequest, error: checkError } = await supabaseAdmin
+    .from('friendships')
+    .select('*')
+    .eq('id', requestId)
+    .single();
+
+  console.log('[acceptFriendRequest] Request exists check - data:', checkRequest, 'error:', checkError);
+
   // Verify the request exists and is for this user
   const { data: request, error: fetchError } = await supabaseAdmin
     .from('friendships')
@@ -180,6 +189,15 @@ export async function acceptFriendRequest(userId, requestId) {
  */
 export async function rejectFriendRequest(userId, requestId) {
   console.log('[rejectFriendRequest] userId:', userId, 'requestId:', requestId);
+
+  // First, check if the request exists at all
+  const { data: checkRequest, error: checkError } = await supabaseAdmin
+    .from('friendships')
+    .select('*')
+    .eq('id', requestId)
+    .single();
+
+  console.log('[rejectFriendRequest] Request exists check - data:', checkRequest, 'error:', checkError);
 
   // Verify the request exists and is for this user
   const { data: request, error: fetchError } = await supabaseAdmin
