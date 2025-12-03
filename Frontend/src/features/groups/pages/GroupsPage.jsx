@@ -10,9 +10,12 @@ import {
   Calendar,
   Trash2,
   ArrowLeft,
+  X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import {
   getUserGroups,
@@ -20,7 +23,9 @@ import {
   getGroup,
   getGroupMembers,
   deleteGroup,
+  addGroupMember,
 } from "../api/groupsApi";
+import { getFriends } from "../../friends/api/friendsApi";
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState([]);
@@ -28,6 +33,7 @@ export default function GroupsPage() {
   const [groupMembers, setGroupMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
 
   useEffect(() => {
     loadGroups();
@@ -85,6 +91,20 @@ export default function GroupsPage() {
     } catch (error) {
       console.error("Error deleting group:", error);
       toast.error(error.response?.data?.message || "Failed to delete group");
+    }
+  };
+
+  const handleAddMember = async (userId, userName) => {
+    try {
+      await addGroupMember(selectedGroup.id, userId);
+      toast.success(`${userName} added to group!`);
+      setShowAddMemberModal(false);
+      // Reload members
+      const members = await getGroupMembers(selectedGroup.id);
+      setGroupMembers(members);
+    } catch (error) {
+      console.error("Error adding member:", error);
+      toast.error(error.response?.data?.message || "Failed to add member");
     }
   };
 
@@ -156,7 +176,11 @@ export default function GroupsPage() {
                   <Users className="w-5 h-5" />
                   Members
                 </CardTitle>
-                <Button size="sm" className="bg-gradient-to-r from-indigo-500 to-purple-500">
+                <Button
+                  size="sm"
+                  className="bg-gradient-to-r from-indigo-500 to-purple-500"
+                  onClick={() => setShowAddMemberModal(true)}
+                >
                   <UserPlus className="w-4 h-4 mr-1" />
                   Add Member
                 </Button>
@@ -196,6 +220,16 @@ export default function GroupsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Add Member Modal */}
+          {showAddMemberModal && (
+            <AddMemberModal
+              groupId={selectedGroup.id}
+              existingMembers={groupMembers}
+              onClose={() => setShowAddMemberModal(false)}
+              onAdd={handleAddMember}
+            />
+          )}
         </div>
       </div>
     );
@@ -390,6 +424,124 @@ function CreateGroupModal({ onClose, onCreate }) {
               </Button>
             </div>
           </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Add Member Modal Component
+function AddMemberModal({ groupId, existingMembers, onClose, onAdd }) {
+  const [friends, setFriends] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    loadFriends();
+  }, []);
+
+  const loadFriends = async () => {
+    try {
+      setLoading(true);
+      const friendsData = await getFriends();
+      setFriends(friendsData);
+    } catch (error) {
+      console.error("Error loading friends:", error);
+      toast.error("Failed to load friends");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter out friends who are already members
+  const existingMemberIds = existingMembers.map(m => m.id);
+  const availableFriends = friends.filter(
+    friend => !existingMemberIds.includes(friend.id)
+  );
+
+  // Filter by search query
+  const filteredFriends = availableFriends.filter(friend =>
+    searchQuery
+      ? `${friend.first_name} ${friend.last_name} ${friend.username}`
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase())
+      : true
+  );
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-md bg-white max-h-[80vh] flex flex-col">
+        <CardHeader className="flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <CardTitle>Add Member</CardTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0"
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+          <div className="mt-4">
+            <Input
+              type="text"
+              placeholder="Search friends..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full"
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="flex-1 overflow-y-auto">
+          {loading ? (
+            <div className="flex justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-indigo-600" />
+            </div>
+          ) : filteredFriends.length === 0 ? (
+            <div className="text-center py-8">
+              <Users className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <p className="text-gray-600">
+                {availableFriends.length === 0
+                  ? "All your friends are already members"
+                  : "No friends found"}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredFriends.map((friend) => (
+                <div
+                  key={friend.id}
+                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <Avatar
+                      src={friend.profile_picture_url}
+                      firstName={friend.first_name}
+                      lastName={friend.last_name}
+                      size="sm"
+                    />
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {friend.first_name} {friend.last_name}
+                      </p>
+                      {friend.username && (
+                        <p className="text-sm text-gray-500">@{friend.username}</p>
+                      )}
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => onAdd(friend.id, `${friend.first_name} ${friend.last_name}`)}
+                    className="bg-gradient-to-r from-indigo-500 to-purple-500"
+                  >
+                    <UserPlus className="w-4 h-4 mr-1" />
+                    Add
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
