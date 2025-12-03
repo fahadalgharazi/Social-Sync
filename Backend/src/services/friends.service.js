@@ -140,6 +140,8 @@ export async function getPendingRequests(userId) {
  * Accept a friend request
  */
 export async function acceptFriendRequest(userId, requestId) {
+  console.log('[acceptFriendRequest] userId:', userId, 'requestId:', requestId);
+
   // Verify the request exists and is for this user
   const { data: request, error: fetchError } = await supabaseAdmin
     .from('friendships')
@@ -148,6 +150,8 @@ export async function acceptFriendRequest(userId, requestId) {
     .eq('friend_id', userId)
     .eq('status', 'pending')
     .single();
+
+  console.log('[acceptFriendRequest] Query result - data:', request, 'error:', fetchError);
 
   if (fetchError || !request) {
     throw new Error('Friend request not found');
@@ -175,6 +179,8 @@ export async function acceptFriendRequest(userId, requestId) {
  * Reject a friend request
  */
 export async function rejectFriendRequest(userId, requestId) {
+  console.log('[rejectFriendRequest] userId:', userId, 'requestId:', requestId);
+
   // Verify the request exists and is for this user
   const { data: request, error: fetchError } = await supabaseAdmin
     .from('friendships')
@@ -183,6 +189,8 @@ export async function rejectFriendRequest(userId, requestId) {
     .eq('friend_id', userId)
     .eq('status', 'pending')
     .single();
+
+  console.log('[rejectFriendRequest] Query result - data:', request, 'error:', fetchError);
 
   if (fetchError || !request) {
     throw new Error('Friend request not found');
