@@ -385,7 +385,8 @@ export default function FriendsPage() {
                 pendingRequests.map((request) => (
                   <Card
                     key={request.requestId}
-                    className="bg-white/70 backdrop-blur-sm border-white/50 shadow-md hover:shadow-lg transition-all"
+                    className="bg-white/70 backdrop-blur-sm border-white/50 shadow-md hover:shadow-lg transition-all cursor-pointer"
+                    onClick={() => navigate(`/friends/${request.id}`)}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
@@ -412,7 +413,10 @@ export default function FriendsPage() {
                         </div>
                         <div className="flex gap-2">
                           <Button
-                            onClick={() => handleAcceptRequest(request.requestId)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleAcceptRequest(request.requestId);
+                            }}
                             size="sm"
                             className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white"
                           >
@@ -420,7 +424,10 @@ export default function FriendsPage() {
                             Accept
                           </Button>
                           <Button
-                            onClick={() => handleRejectRequest(request.requestId)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRejectRequest(request.requestId);
+                            }}
                             variant="outline"
                             size="sm"
                             className="text-red-600 border-red-300 hover:bg-red-50"
@@ -453,7 +460,8 @@ export default function FriendsPage() {
                 sentRequests.map((request) => (
                   <Card
                     key={request.requestId}
-                    className="bg-white/70 backdrop-blur-sm border-white/50 shadow-md"
+                    className="bg-white/70 backdrop-blur-sm border-white/50 shadow-md hover:shadow-lg transition-all cursor-pointer"
+                    onClick={() => navigate(`/friends/${request.id}`)}
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
