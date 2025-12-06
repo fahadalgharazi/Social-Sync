@@ -126,11 +126,11 @@ export async function addMember(req, res, next) {
   try {
     const userId = req.user.id;
     const { groupId } = req.params;
-    const { userId: newUserId, role } = req.body;
+    const { user_id: newUserId, role } = req.body;
 
     const membership = await GroupsService.addMember(groupId, userId, newUserId, role);
 
-    return created(res, { membership }, 'Member added successfully');
+    return created(res, membership, 'Member added successfully');
   } catch (error) {
     if (error.message.includes('already a member')) {
       return sendError(res, 409, error.message);
