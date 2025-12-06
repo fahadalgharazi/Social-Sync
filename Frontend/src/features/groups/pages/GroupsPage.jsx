@@ -45,7 +45,6 @@ export default function GroupsPage() {
       const data = await getUserGroups();
       setGroups(data);
     } catch (error) {
-      console.error("Error loading groups:", error);
       toast.error("Failed to load groups");
     } finally {
       setLoading(false);
@@ -59,7 +58,6 @@ export default function GroupsPage() {
       setShowCreateModal(false);
       await loadGroups();
     } catch (error) {
-      console.error("Error creating group:", error);
       toast.error(error.response?.data?.message || "Failed to create group");
     }
   };
@@ -73,7 +71,6 @@ export default function GroupsPage() {
       setSelectedGroup(groupData);
       setGroupMembers(members);
     } catch (error) {
-      console.error("Error loading group details:", error);
       toast.error("Failed to load group details");
     }
   };
@@ -89,7 +86,6 @@ export default function GroupsPage() {
       setSelectedGroup(null);
       await loadGroups();
     } catch (error) {
-      console.error("Error deleting group:", error);
       toast.error(error.response?.data?.message || "Failed to delete group");
     }
   };
@@ -103,7 +99,6 @@ export default function GroupsPage() {
       const members = await getGroupMembers(selectedGroup.id);
       setGroupMembers(members);
     } catch (error) {
-      console.error("Error adding member:", error);
       toast.error(error.response?.data?.message || "Failed to add member");
     }
   };
@@ -449,7 +444,6 @@ function AddMemberModal({ groupId, existingMembers, onClose, onAdd }) {
       const friendsData = await getFriends();
       setFriends(friendsData);
     } catch (error) {
-      console.error("Error loading friends:", error);
       toast.error("Failed to load friends");
     } finally {
       setLoading(false);

@@ -23,7 +23,6 @@ export default async function authGuard(req, res, next) {
     req.user = { id: data.user.id, email: data.user.email, token };
     next();
   } catch (e) {
-    console.error('[authGuard] Unexpected error:', e);
     return res.status(401).json({
       success: false,
       message: 'Authentication failed'

@@ -19,7 +19,6 @@ export async function searchUsers(query, currentUserId, limit = 20) {
     .limit(limit);
 
   if (error) {
-    console.error('[searchUsers] Database error:', error);
     throw new Error('Failed to search users');
   }
 
@@ -84,7 +83,6 @@ export async function getUserProfile(userId) {
     .single();
 
   if (error || !user) {
-    console.error('[getUserProfile] Database error:', error);
     throw new Error('User not found');
   }
 

@@ -76,7 +76,6 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
     });
 
     if (authError) {
-      console.error('[SIGNUP] Supabase auth error:', authError);
       return res.status(400).json({
         success: false,
         message: authError.message || 'Failed to create account'
@@ -96,7 +95,6 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
     try {
       geoData = await resolveZipCode(zip);
     } catch (geoError) {
-      console.error('[SIGNUP] ZIP resolution error:', geoError);
       return res.status(400).json({
         success: false,
         message: geoError.message
@@ -113,7 +111,6 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
       }]);
 
     if (userInsertError) {
-      console.error('[SIGNUP] User insert error:', userInsertError);
       return res.status(400).json({
         success: false,
         message: 'Failed to save user record'
@@ -141,7 +138,6 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
       }], { onConflict: 'id' });
 
     if (profileError) {
-      console.error('[SIGNUP] Profile insert error:', profileError);
       return res.status(400).json({
         success: false,
         message: 'Failed to save user profile'
@@ -160,7 +156,6 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
     });
 
   } catch (error) {
-    console.error('[SIGNUP] Unexpected error:', error);
     return next(error);
   }
 });
@@ -208,7 +203,6 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
     });
 
   } catch (error) {
-    console.error('[LOGIN] Unexpected error:', error);
     return next(error);
   }
 });
@@ -251,7 +245,6 @@ router.get('/me', async (req, res) => {
     .single();
 
   if (userError) {
-    console.error('[/auth/me] Error fetching user_data:', userError);
     // Return basic user data if profile fetch fails
     return res.json({
       success: true,

@@ -5,7 +5,9 @@ const ALLOWED_PROFILE_FIELDS = [
   'bio',
   'interests',
   'profile_picture_url',
-  'gender'
+  'gender',
+  'city',
+  'state'
 ];
 
 /**

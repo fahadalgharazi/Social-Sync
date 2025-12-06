@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isAllowedImageUrl } from '../utils/urlValidation.js';
 
 /**
  * Add User Event Validator
@@ -22,7 +23,14 @@ export const addUserEventSchema = z.object({
   venue_name: z.string().optional(),
   venue_city: z.string().optional(),
   venue_state: z.string().max(2).optional(),
-  image_url: z.string().url().optional().or(z.literal('')),
+  image_url: z
+    .string()
+    .url()
+    .refine(isAllowedImageUrl, {
+      message: 'Event image must be from an allowed image hosting service',
+    })
+    .optional()
+    .or(z.literal('')),
   status: z.enum(['interested', 'going'], {
     errorMap: () => ({ message: 'Status must be either "interested" or "going"' }),
   }),
