@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { MapPin, Calendar, ExternalLink, Users, UserCheck, Heart, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,49 +35,29 @@ function formatEventDateTime(date, time) {
 export default function EventCard({ event }) {
   const [userStatus, setUserStatus] = useState(event.userStatus || null);
   const [isLoading, setIsLoading] = useState(false);
-  const isMountedRef = useRef(true);
-
-  // Cleanup on unmount to prevent state updates
-  useEffect(() => {
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
 
   const handleStatusChange = async (newStatus) => {
+    // Prevent concurrent requests
     if (isLoading) {
-      console.log('[EventCard] Already loading, ignoring click');
       return;
     }
 
-    console.log('[EventCard] Status change requested:', {
-      currentStatus: userStatus,
-      newStatus,
-      eventId: event.id
-    });
-
     setIsLoading(true);
+    let updatedStatus = userStatus;
 
     try {
       // If clicking the same status, remove the event
       if (userStatus === newStatus) {
-        console.log('[EventCard] Removing event');
         await removeUserEvent(event.id);
-        if (isMountedRef.current) {
-          setUserStatus(null);
-          toast.success("Event removed from your list");
-        }
+        updatedStatus = null;
+        toast.success("Event removed from your list");
       } else if (userStatus) {
         // If user already has a status, update it
-        console.log('[EventCard] Updating event status');
         await updateUserEventStatus(event.id, newStatus);
-        if (isMountedRef.current) {
-          setUserStatus(newStatus);
-          toast.success(`Status updated to ${newStatus}`);
-        }
+        updatedStatus = newStatus;
+        toast.success(`Status updated to ${newStatus}`);
       } else {
         // Otherwise, add new event
-        console.log('[EventCard] Adding new event');
         await addUserEvent({
           eventId: event.id,
           eventName: event.name,
@@ -85,19 +65,17 @@ export default function EventCard({ event }) {
           venueName: event.venueName,
           status: newStatus,
         });
-        if (isMountedRef.current) {
-          setUserStatus(newStatus);
-          toast.success(`Added to ${newStatus} list`);
-        }
+        updatedStatus = newStatus;
+        toast.success(`Added to ${newStatus} list`);
       }
+
+      // Update status after successful API call
+      setUserStatus(updatedStatus);
     } catch (error) {
       console.error('[EventCard] Error updating event status:', error);
-      if (isMountedRef.current) {
-        toast.error(error.response?.data?.message || "Failed to update status");
-      }
+      toast.error(error.response?.data?.message || "Failed to update status");
     } finally {
-      console.log('[EventCard] Setting isLoading to false, isMounted:', isMountedRef.current);
-      // Always re-enable the button, even if component is unmounting
+      // Always re-enable the button
       setIsLoading(false);
     }
   };
