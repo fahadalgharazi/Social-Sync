@@ -1,29 +1,56 @@
 import { createBrowserRouter } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import App from "./App.jsx";
-import LandingPage from "../pages/LandingPage.jsx";
-import LoginPage from "../pages/LoginPage.jsx";
-import SignUpPage from "../pages/SignUpPage.jsx";
-import QuestionnairePage from "../pages/QuestionnairePage.jsx";
-import EventsPage from "../pages/EventsPage.jsx";
-import FriendsPage from "../features/friends/pages/FriendsPage.jsx";
-import FriendProfilePage from "../features/users/pages/FriendProfilePage.jsx";
-import ProfilePage from "../features/profile/pages/ProfilePage.jsx";
-import GroupsPage from "../features/groups/pages/GroupsPage.jsx";
 import AuthGuard from "../features/auth/components/AuthGuard.jsx";
+
+// Lazy load pages for code splitting and better performance
+const LandingPage = lazy(() => import("../pages/LandingPage.jsx"));
+const LoginPage = lazy(() => import("../pages/LoginPage.jsx"));
+const SignUpPage = lazy(() => import("../pages/SignUpPage.jsx"));
+const QuestionnairePage = lazy(() => import("../pages/QuestionnairePage.jsx"));
+const EventsPage = lazy(() => import("../pages/EventsPage.jsx"));
+const FriendsPage = lazy(() => import("../features/friends/pages/FriendsPage.jsx"));
+const FriendProfilePage = lazy(() => import("../features/users/pages/FriendProfilePage.jsx"));
+const ProfilePage = lazy(() => import("../features/profile/pages/ProfilePage.jsx"));
+const GroupsPage = lazy(() => import("../features/groups/pages/GroupsPage.jsx"));
+
+// Loading component for Suspense fallback
+const PageLoader = () => (
+  <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
+    <div className="text-center">
+      <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-gray-600 font-medium">Loading...</p>
+    </div>
+  </div>
+);
+
+// Wrapper component for Suspense
+const SuspenseWrapper = ({ children }) => (
+  <Suspense fallback={<PageLoader />}>{children}</Suspense>
+);
 
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
-      { index: true, element: <LandingPage /> },
-      { path: "login", element: <LoginPage /> },
-      { path: "signup", element: <SignUpPage /> },
+      {
+        index: true,
+        element: <SuspenseWrapper><LandingPage /></SuspenseWrapper>
+      },
+      {
+        path: "login",
+        element: <SuspenseWrapper><LoginPage /></SuspenseWrapper>
+      },
+      {
+        path: "signup",
+        element: <SuspenseWrapper><SignUpPage /></SuspenseWrapper>
+      },
       {
         path: "questionnaire",
         element: (
           <AuthGuard>
-            <QuestionnairePage />
+            <SuspenseWrapper><QuestionnairePage /></SuspenseWrapper>
           </AuthGuard>
         ),
       },
@@ -31,7 +58,7 @@ export const router = createBrowserRouter([
         path: "events",
         element: (
           <AuthGuard>
-            <EventsPage />
+            <SuspenseWrapper><EventsPage /></SuspenseWrapper>
           </AuthGuard>
         ),
       },
@@ -39,7 +66,7 @@ export const router = createBrowserRouter([
         path: "friends",
         element: (
           <AuthGuard>
-            <FriendsPage />
+            <SuspenseWrapper><FriendsPage /></SuspenseWrapper>
           </AuthGuard>
         ),
       },
@@ -47,7 +74,7 @@ export const router = createBrowserRouter([
         path: "friends/:friendId",
         element: (
           <AuthGuard>
-            <FriendProfilePage />
+            <SuspenseWrapper><FriendProfilePage /></SuspenseWrapper>
           </AuthGuard>
         ),
       },
@@ -55,7 +82,7 @@ export const router = createBrowserRouter([
         path: "profile",
         element: (
           <AuthGuard>
-            <ProfilePage />
+            <SuspenseWrapper><ProfilePage /></SuspenseWrapper>
           </AuthGuard>
         ),
       },
@@ -63,7 +90,7 @@ export const router = createBrowserRouter([
         path: "groups",
         element: (
           <AuthGuard>
-            <GroupsPage />
+            <SuspenseWrapper><GroupsPage /></SuspenseWrapper>
           </AuthGuard>
         ),
       },

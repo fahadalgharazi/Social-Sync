@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, memo } from "react";
 import { MapPin, Calendar, ExternalLink, Users, UserCheck, Heart, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,11 +32,11 @@ function formatEventDateTime(date, time) {
   }
 }
 
-export default function EventCard({ event }) {
+function EventCard({ event }) {
   const [userStatus, setUserStatus] = useState(event.userStatus || null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleStatusChange = async (newStatus) => {
+  const handleStatusChange = useCallback(async (newStatus) => {
     // Prevent concurrent requests
     if (isLoading) {
       return;
@@ -78,7 +78,8 @@ export default function EventCard({ event }) {
       // Always re-enable the button
       setIsLoading(false);
     }
-  };
+  }, [isLoading, userStatus, event.id, event.name, event.date, event.time, event.venueName]);
+
   return (
     <Card className="group bg-white/70 backdrop-blur-sm border-white/50 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
       {/* Event Image */}
@@ -213,3 +214,6 @@ export default function EventCard({ event }) {
     </Card>
   );
 }
+
+// Memoize to prevent unnecessary re-renders
+export default memo(EventCard);
