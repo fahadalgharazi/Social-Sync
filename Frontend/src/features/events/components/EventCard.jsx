@@ -45,13 +45,23 @@ export default function EventCard({ event }) {
   }, []);
 
   const handleStatusChange = async (newStatus) => {
-    if (isLoading) return;
+    if (isLoading) {
+      console.log('[EventCard] Already loading, ignoring click');
+      return;
+    }
+
+    console.log('[EventCard] Status change requested:', {
+      currentStatus: userStatus,
+      newStatus,
+      eventId: event.id
+    });
 
     setIsLoading(true);
 
     try {
       // If clicking the same status, remove the event
       if (userStatus === newStatus) {
+        console.log('[EventCard] Removing event');
         await removeUserEvent(event.id);
         if (isMountedRef.current) {
           setUserStatus(null);
@@ -59,6 +69,7 @@ export default function EventCard({ event }) {
         }
       } else if (userStatus) {
         // If user already has a status, update it
+        console.log('[EventCard] Updating event status');
         await updateUserEventStatus(event.id, newStatus);
         if (isMountedRef.current) {
           setUserStatus(newStatus);
@@ -66,6 +77,7 @@ export default function EventCard({ event }) {
         }
       } else {
         // Otherwise, add new event
+        console.log('[EventCard] Adding new event');
         await addUserEvent({
           eventId: event.id,
           eventName: event.name,
@@ -79,14 +91,14 @@ export default function EventCard({ event }) {
         }
       }
     } catch (error) {
-      console.error("Error updating event status:", error);
+      console.error('[EventCard] Error updating event status:', error);
       if (isMountedRef.current) {
         toast.error(error.response?.data?.message || "Failed to update status");
       }
     } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
+      console.log('[EventCard] Setting isLoading to false, isMounted:', isMountedRef.current);
+      // Always re-enable the button, even if component is unmounting
+      setIsLoading(false);
     }
   };
   return (
