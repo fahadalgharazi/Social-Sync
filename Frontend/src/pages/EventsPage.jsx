@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   Calendar,
   MapPin,
@@ -16,44 +17,43 @@ import { searchEvents, getMe } from "../features/events/api/eventsApi";
 import EventCard from "../features/events/components/EventCard";
 
 export default function EventsPage() {
-  const [items, setItems] = useState([]);
-  const [pagination, setPagination] = useState({ page: 0, totalPages: 0, total: 0, limit: 20 });
-  const [personality, setPersonality] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState("");
-  const [user, setUser] = useState(null);
+  const [page, setPage] = useState(0);
 
-  async function load(page = 0) {
-    setLoading(true);
-    setErr("");
-    try {
-      // Get logged-in user info
-      const userData = await getMe().catch(() => null);
-      setUser(userData);
+  // Fetch user data with caching (refetch only when stale)
+  const { data: user } = useQuery({
+    queryKey: ['user'],
+    queryFn: () => getMe().catch(() => null),
+    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
+  });
 
-      const { items, pagination, meta } = await searchEvents({
-        personalityType: personality,
+  // Fetch events with caching and automatic refetching
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ['events', page],
+    queryFn: async () => {
+      const result = await searchEvents({
         page,
         limit: 20,
       });
-      setItems(items);
-      setPagination(pagination);
-      if (meta?.personalityType) setPersonality(meta.personalityType);
-    } catch (e) {
-      setErr(e?.response?.data?.message || e?.message || "Failed to load events");
-    } finally {
-      setLoading(false);
-    }
-  }
+      return result;
+    },
+    staleTime: 3 * 60 * 1000, // Consider data fresh for 3 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    refetchOnWindowFocus: true, // Refetch when user returns to tab
+  });
 
-  useEffect(() => {
-    load(0);
-  }, []);
+  const items = data?.items || [];
+  const pagination = data?.pagination || { page: 0, totalPages: 0, total: 0, limit: 20 };
+  const personality = data?.meta?.personalityType || null;
 
   const canPrev = pagination.page > 0;
   const canNext = pagination.page + 1 < pagination.totalPages;
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <div className="text-center">
@@ -64,7 +64,7 @@ export default function EventsPage() {
     );
   }
 
-  if (err) {
+  if (isError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
         <Card className="bg-white/70 backdrop-blur-xl border-white/50 shadow-xl max-w-md">
@@ -73,9 +73,11 @@ export default function EventsPage() {
               <span className="text-3xl">⚠️</span>
             </div>
             <h2 className="text-xl font-bold text-gray-800 mb-2">Unable to Load Events</h2>
-            <p className="text-gray-600 mb-4">{err}</p>
+            <p className="text-gray-600 mb-4">
+              {error?.response?.data?.message || error?.message || "Failed to load events"}
+            </p>
             <Button
-              onClick={() => load(0)}
+              onClick={() => setPage(0)}
               className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
             >
               Try Again
@@ -146,7 +148,7 @@ export default function EventsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => load(pagination.page - 1)}
+                onClick={() => setPage(prev => prev - 1)}
                 disabled={!canPrev}
                 className="bg-white/50 backdrop-blur-sm"
               >
@@ -156,7 +158,7 @@ export default function EventsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => load(pagination.page + 1)}
+                onClick={() => setPage(prev => prev + 1)}
                 disabled={!canNext}
                 className="bg-white/50 backdrop-blur-sm"
               >
@@ -198,7 +200,7 @@ export default function EventsPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => load(pagination.page - 1)}
+                onClick={() => setPage(prev => prev - 1)}
                 disabled={!canPrev}
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -209,7 +211,7 @@ export default function EventsPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => load(pagination.page + 1)}
+                onClick={() => setPage(prev => prev + 1)}
                 disabled={!canNext}
               >
                 <ChevronRight className="w-4 h-4" />
