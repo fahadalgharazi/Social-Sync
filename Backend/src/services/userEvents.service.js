@@ -95,8 +95,22 @@ export async function removeUserEvent(userId, eventId) {
 
 /**
  * Get events a specific user is attending (for viewing friend's events)
+ * Requires the current user to be friends with the target user
  */
-export async function getFriendEvents(friendId) {
+export async function getFriendEvents(currentUserId, friendId) {
+  // First, verify that currentUser is friends with friendId
+  const { data: friendship, error: friendshipError } = await supabaseAdmin
+    .from('friendships')
+    .select('*')
+    .eq('status', 'accepted')
+    .or(`and(user_id.eq.${currentUserId},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${currentUserId})`)
+    .single();
+
+  if (friendshipError || !friendship) {
+    throw new Error('Not authorized to view this user\'s events');
+  }
+
+  // If friendship verified, get the friend's events
   const { data, error } = await supabaseAdmin
     .from('user_events')
     .select('*')

@@ -6,6 +6,7 @@ import ngeohash from 'ngeohash';
 import { validate } from '../middlewares/validate.js';
 import { signupSchema, loginSchema } from '../validators/auth.validator.js';
 import { sanitizeBio, sanitizeInterests, sanitizeUsername } from '../utils/sanitize.js';
+import { authLimiter } from '../middlewares/rateLimiter.js';
 
 const router = Router();
 async function resolveZipCode(zip) {
@@ -39,7 +40,7 @@ async function resolveZipCode(zip) {
 }
 
 
-router.post('/signup', validate(signupSchema), async (req, res, next) => {
+router.post('/signup', authLimiter, validate(signupSchema), async (req, res, next) => {
   try {
     // normalized and validated
     const {
@@ -162,7 +163,7 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
 
 
 
-router.post('/login', validate(loginSchema), async (req, res, next) => {
+router.post('/login', authLimiter, validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
 

@@ -79,9 +79,10 @@ export async function removeEvent(req, res, next) {
  */
 export async function getFriendEvents(req, res, next) {
   try {
+    const userId = req.user.id;
     const { friendId } = req.params;
 
-    const events = await UserEventsService.getFriendEvents(friendId);
+    const events = await UserEventsService.getFriendEvents(userId, friendId);
 
     return ok(res, { events, count: events.length }, 'Friend events retrieved successfully');
   } catch (error) {
