@@ -66,13 +66,30 @@ export async function getUserGroups(userId) {
     throw new Error('Failed to fetch group details');
   }
 
+  // Get member counts for each group
+  const { data: memberCounts, error: countError } = await supabaseAdmin
+    .from('group_members')
+    .select('group_id')
+    .in('group_id', groupIds);
+
+  if (countError) {
+    throw new Error('Failed to fetch member counts');
+  }
+
+  // Count members per group
+  const countsMap = {};
+  memberCounts.forEach((m) => {
+    countsMap[m.group_id] = (countsMap[m.group_id] || 0) + 1;
+  });
+
   // Merge membership info with group data
   return groups.map((group) => {
     const membership = memberships.find((m) => m.group_id === group.id);
     return {
       ...group,
-      userRole: membership.role,
+      role: membership.role,
       joinedAt: membership.joined_at,
+      member_count: countsMap[group.id] || 0,
     };
   });
 }

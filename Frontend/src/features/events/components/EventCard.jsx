@@ -52,9 +52,9 @@ export default function EventCard({ event }) {
   const handleStatusChange = async (newStatus) => {
     if (isLoading) return;
 
-    try {
-      setIsLoading(true);
+    setIsLoading(true);
 
+    try {
       // If clicking the same status, remove the event
       if (userStatus === newStatus) {
         await removeUserEvent(event.id);
@@ -62,11 +62,8 @@ export default function EventCard({ event }) {
           setUserStatus(null);
           toast.success("Event removed from your list");
         }
-        return;
-      }
-
-      // If user already has a status, update it
-      if (userStatus) {
+      } else if (userStatus) {
+        // If user already has a status, update it
         await updateUserEventStatus(event.id, newStatus);
         if (isMountedRef.current) {
           setUserStatus(newStatus);

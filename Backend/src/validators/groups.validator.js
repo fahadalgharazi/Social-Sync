@@ -22,7 +22,7 @@ export const updateGroupSchema = z.object({
  * Add Member Validator
  */
 export const addMemberSchema = z.object({
-  userId: z.string().uuid('Invalid user ID'),
+  user_id: z.string().uuid('Invalid user ID'),
   role: z.enum(['admin', 'member']).default('member'),
 });
 
