@@ -5,5 +5,5 @@ import { http } from "../../../lib/http";
  */
 export async function getFriendEvents(friendId) {
   const { data } = await http.get(`/user-events/friends/${friendId}`);
-  return data?.data || [];
+  return data?.data?.events || [];
 }
