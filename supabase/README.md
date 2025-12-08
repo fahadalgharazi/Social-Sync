@@ -2,7 +2,7 @@
 
 This directory contains all database migrations and schema documentation for the Social-Sync application.
 
-## 📋 Table of Contents
+## Table of Contents
 - [Quick Start](#quick-start)
 - [Migration Files](#migration-files)
 - [Database Structure](#database-structure)
@@ -10,7 +10,7 @@ This directory contains all database migrations and schema documentation for the
 - [Local Development](#local-development)
 - [Production Setup](#production-setup)
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - A Supabase project (free tier works fine)
@@ -39,10 +39,10 @@ This directory contains all database migrations and schema documentation for the
    - Verify RLS is enabled on each table
    - Test creating a user via the auth signup endpoint
 
-## 📁 Migration Files
+## Migration Files
 
 ### 001_initial_schema.sql (REQUIRED)
-**Status**: ✅ Production Ready
+**Status**:  Production Ready
 **Purpose**: Creates core application tables
 
 Tables created:
@@ -57,7 +57,7 @@ Features:
 - Proper indexes for performance
 
 ### 002_rls_policies.sql (REQUIRED)
-**Status**: ✅ Production Ready
+**Status**:  Production Ready
 **Purpose**: Implements Row Level Security
 
 Policies:
@@ -66,7 +66,7 @@ Policies:
 - Service role has full access for backend operations
 
 ### 003_social_features_schema.sql (OPTIONAL - Phase 2)
-**Status**: 🚧 Ready for Phase 2
+**Status**:  Ready for Phase 2
 **Purpose**: Adds social features (friends, groups, events)
 
 Tables created:
@@ -81,7 +81,7 @@ Helper Functions:
 - `get_mutual_friends(user1_id, user2_id)` - Find common friends
 
 ### 004_social_features_rls.sql (OPTIONAL - Phase 2)
-**Status**: 🚧 Ready for Phase 2
+**Status**:  Ready for Phase 2
 **Purpose**: Security policies for social features
 
 Policies:
@@ -241,7 +241,7 @@ added_by    UUID
 added_at    TIMESTAMP
 ```
 
-## 🔒 Security (RLS)
+##  Security (RLS)
 
 All tables have Row Level Security enabled.
 
@@ -258,7 +258,7 @@ All tables have Row Level Security enabled.
 - **Anon Key**: Frontend uses anon key with RLS enforced
 - **Production**: Consider adding more restrictive policies
 
-## 🛠️ Local Development
+##  Local Development
 
 ### Option 1: Using Supabase CLI (Recommended)
 
@@ -283,7 +283,7 @@ supabase db reset
 3. Run in order (001 → 002 → 003 → 004)
 4. Update your `.env` files with credentials
 
-## 🚀 Production Setup
+##  Production Setup
 
 ### Supabase Dashboard
 
@@ -319,7 +319,7 @@ WHERE schemaname = 'public';
 
 All tables should show `rowsecurity = true`.
 
-## 📊 ERD (Entity Relationship Diagram)
+## ERD (Entity Relationship Diagram)
 
 ```
 ┌─────────────┐
@@ -355,7 +355,7 @@ All tables should show `rowsecurity = true`.
                    └─────────────────────┘
 ```
 
-## 🔧 Common Queries
+##  Common Queries
 
 ### Get user with profile
 
@@ -385,7 +385,7 @@ WHERE geohash LIKE '9q5%'  -- San Francisco area
 LIMIT 10;
 ```
 
-## 📝 Migration History
+##  Migration History
 
 | Version | Date | Description |
 |---------|------|-------------|
@@ -394,7 +394,7 @@ LIMIT 10;
 | 003 | Phase 2 | Social features (friends, groups, events) |
 | 004 | Phase 2 | RLS policies for social features |
 
-## 🆘 Troubleshooting
+##  Troubleshooting
 
 ### "relation does not exist"
 - You haven't run the migration yet
@@ -416,12 +416,9 @@ LIMIT 10;
 - Ensure user exists in `users` table first
 - Check cascade delete settings
 
-## 📚 Additional Resources
+##  Additional Resources
 
 - [Supabase Documentation](https://supabase.com/docs)
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)
 - [Row Level Security Guide](https://supabase.com/docs/guides/auth/row-level-security)
 
----
-
-**Questions?** Check the main README or open an issue on GitHub.

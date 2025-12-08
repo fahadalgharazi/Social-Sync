@@ -23,16 +23,14 @@
 
   ### 2. Database Setup
 
-  **⚠️ Important: Complete this step first!**
+  ** Important: Complete this step first!**
 
   1. Create a new Supabase project at [supabase.com](https://supabase.com)
   2. Go to the SQL Editor in your Supabase dashboard
-  3. Run the migration files in `supabase/migrations/` in order:
-     - `001_initial_schema.sql` (required)
-     - `002_rls_policies.sql` (required)
+  3. Run the migration files in `supabase/migrations/` in order.
   4. Verify tables appear in the Table Editor
 
-  📖 See `supabase/README.md` for detailed database documentation.
+   See `supabase/README.md` for detailed database documentation.
 
   ### 3. Backend Setup
   ```bash
@@ -79,4 +77,4 @@ npm run test:coverage     # Run with coverage report
 npm run test:ui           # Run with interactive UI
 ```
 
-📖 For detailed testing documentation, see [TESTING.md](./TESTING.md)
+ For detailed testing documentation, see [TESTING.md](./TESTING.md)
