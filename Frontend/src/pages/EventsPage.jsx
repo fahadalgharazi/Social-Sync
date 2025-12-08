@@ -19,14 +19,12 @@ import EventCard from "../features/events/components/EventCard";
 export default function EventsPage() {
   const [page, setPage] = useState(0);
 
-  // Fetch user data with caching (refetch only when stale)
   const { data: user } = useQuery({
     queryKey: ['user'],
     queryFn: () => getMe().catch(() => null),
-    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
+    staleTime: 10 * 60 * 1000,
   });
 
-  // Fetch events with caching and automatic refetching
   const {
     data,
     isLoading,
@@ -41,9 +39,9 @@ export default function EventsPage() {
       });
       return result;
     },
-    staleTime: 3 * 60 * 1000, // Consider data fresh for 3 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
-    refetchOnWindowFocus: true, // Refetch when user returns to tab
+    staleTime: 3 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 
   const items = data?.items || [];

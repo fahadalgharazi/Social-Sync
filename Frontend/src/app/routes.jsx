@@ -3,7 +3,6 @@ import { lazy, Suspense } from "react";
 import App from "./App.jsx";
 import AuthGuard from "../features/auth/components/AuthGuard.jsx";
 
-// Lazy load pages for code splitting and better performance
 const LandingPage = lazy(() => import("../pages/LandingPage.jsx"));
 const LoginPage = lazy(() => import("../pages/LoginPage.jsx"));
 const SignUpPage = lazy(() => import("../pages/SignUpPage.jsx"));
@@ -14,7 +13,6 @@ const FriendProfilePage = lazy(() => import("../features/users/pages/FriendProfi
 const ProfilePage = lazy(() => import("../features/profile/pages/ProfilePage.jsx"));
 const GroupsPage = lazy(() => import("../features/groups/pages/GroupsPage.jsx"));
 
-// Loading component for Suspense fallback
 const PageLoader = () => (
   <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
     <div className="text-center">
@@ -24,7 +22,6 @@ const PageLoader = () => (
   </div>
 );
 
-// Wrapper component for Suspense
 const SuspenseWrapper = ({ children }) => (
   <Suspense fallback={<PageLoader />}>{children}</Suspense>
 );
