@@ -1,8 +1,71 @@
-import { MapPin, Calendar, ExternalLink, Users } from "lucide-react";
+import { useState, useCallback, memo } from "react";
+import { MapPin, Calendar, ExternalLink, Users, UserCheck, Heart, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { addUserEvent, updateUserEventStatus, removeUserEvent } from "../api/userEventsApi";
+import { toast } from "sonner";
 
-export default function EventCard({ event }) {
+function formatEventDateTime(date, time) {
+  if (!date) {
+    return new Date().toISOString();
+  }
+
+  try {
+    if (date.includes('T')) {
+      return new Date(date).toISOString();
+    }
+
+    const dateTimeString = time ? `${date}T${time}` : `${date}T00:00:00`;
+    return new Date(dateTimeString).toISOString();
+  } catch (error) {
+    console.error('Error formatting event datetime:', error);
+    return new Date().toISOString();
+  }
+}
+
+function EventCard({ event }) {
+  const [userStatus, setUserStatus] = useState(event.userStatus || null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleStatusChange = useCallback(async (newStatus) => {
+    // Prevent concurrent requests
+    if (isLoading) {
+      return;
+    }
+
+    setIsLoading(true);
+    let updatedStatus = userStatus;
+
+    try {
+      if (userStatus === newStatus) {
+        await removeUserEvent(event.id);
+        updatedStatus = null;
+        toast.success("Event removed from your list");
+      } else if (userStatus) {
+        await updateUserEventStatus(event.id, newStatus);
+        updatedStatus = newStatus;
+        toast.success(`Status updated to ${newStatus}`);
+      } else {
+        await addUserEvent({
+          eventId: event.id,
+          eventName: event.name,
+          eventDate: formatEventDateTime(event.date, event.time),
+          venueName: event.venueName,
+          status: newStatus,
+        });
+        updatedStatus = newStatus;
+        toast.success(`Added to ${newStatus} list`);
+      }
+
+      setUserStatus(updatedStatus);
+    } catch (error) {
+      console.error('[EventCard] Error updating event status:', error);
+      toast.error(error.response?.data?.message || "Failed to update status");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isLoading, userStatus, event.id, event.name, event.date, event.time, event.venueName]);
+
   return (
     <Card className="group bg-white/70 backdrop-blur-sm border-white/50 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 overflow-hidden">
       {/* Event Image */}
@@ -49,6 +112,67 @@ export default function EventCard({ event }) {
               <span>{event.attendees} attending</span>
             </div>
           )}
+
+          {/* Friends Attending Badge */}
+          {event.friendsCount > 0 && (
+            <div className="flex items-center space-x-2 text-sm">
+              <UserCheck className="w-4 h-4 text-emerald-500" />
+              <span className="text-emerald-600 font-medium">
+                {event.friendsCount} {event.friendsCount === 1 ? 'friend' : 'friends'} attending
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Status Buttons */}
+        <div className="flex gap-2 mt-4">
+          <Button
+            onClick={() => handleStatusChange('interested')}
+            disabled={isLoading}
+            variant={userStatus === 'interested' ? 'default' : 'outline'}
+            className={`flex-1 transition-all duration-200 ${
+              userStatus === 'interested'
+                ? 'bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white'
+                : 'border-pink-300 text-pink-600 hover:bg-pink-50'
+            }`}
+            size="sm"
+          >
+            {userStatus === 'interested' ? (
+              <>
+                <Check className="w-4 h-4 mr-1" />
+                Interested
+              </>
+            ) : (
+              <>
+                <Heart className="w-4 h-4 mr-1" />
+                Interested
+              </>
+            )}
+          </Button>
+
+          <Button
+            onClick={() => handleStatusChange('going')}
+            disabled={isLoading}
+            variant={userStatus === 'going' ? 'default' : 'outline'}
+            className={`flex-1 transition-all duration-200 ${
+              userStatus === 'going'
+                ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white'
+                : 'border-emerald-300 text-emerald-600 hover:bg-emerald-50'
+            }`}
+            size="sm"
+          >
+            {userStatus === 'going' ? (
+              <>
+                <Check className="w-4 h-4 mr-1" />
+                Going
+              </>
+            ) : (
+              <>
+                <Users className="w-4 h-4 mr-1" />
+                Going
+              </>
+            )}
+          </Button>
         </div>
 
         {/* Event Link */}
@@ -76,3 +200,5 @@ export default function EventCard({ event }) {
     </Card>
   );
 }
+
+export default memo(EventCard);

@@ -35,6 +35,17 @@ const nameSchema = z
   .max(50, 'Name is too long (max 50 characters)');
 
 /**
+ * Username Schema
+ * Alphanumeric and underscores only
+ */
+const usernameSchema = z
+  .string({ required_error: 'Username is required' })
+  .trim()
+  .min(3, 'Username must be at least 3 characters')
+  .max(20, 'Username must be less than 20 characters')
+  .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores');
+
+/**
  * ZIP Code Schema
  * Supports both 5-digit and ZIP+4 formats
  */
@@ -63,6 +74,7 @@ export const signupSchema = z.object({
   confirmPassword: z.string({ required_error: 'Please confirm your password' }),
   firstName: nameSchema,
   lastName: nameSchema,
+  username: usernameSchema,
   zip: zipCodeSchema,
   gender: z.string().trim().optional().nullable(),
   bio: z.string().trim().max(500, 'Bio must be 500 characters or less').optional().nullable(),

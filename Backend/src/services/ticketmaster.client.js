@@ -130,14 +130,6 @@ async function tmQuery({
   } catch (e) {
     const status = e?.response?.status;
     const body = e?.response?.data;
-    console.error('[TM] /events.json error', {
-      status,
-      message: e?.message,
-      body,
-      geoPoint,
-      radius,
-      segmentName,
-    });
     return {
       items: [],
       page,

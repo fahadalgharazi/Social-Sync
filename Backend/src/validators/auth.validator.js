@@ -24,6 +24,12 @@ const nameSchema = z
   .min(1, 'Name cannot be empty')
   .max(50, 'Name is too long');
 
+const usernameSchema = z
+  .string({ required_error: 'Username is required' })
+  .trim()
+  .min(3, 'Username must be at least 3 characters')
+  .max(20, 'Username must be less than 20 characters')
+  .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores');
 
 const zipCodeSchema = z
   .string({ required_error: 'ZIP code is required' })
@@ -34,8 +40,10 @@ export const signupSchema = z.object({
   // Required fields
   email: emailSchema,
   password: passwordSchema,
+  confirmPassword: z.string({ required_error: 'Please confirm your password' }),
   firstName: nameSchema,
   lastName: nameSchema,
+  username: usernameSchema,
   zip: zipCodeSchema,
 
   // Optional fields with sensible defaults
@@ -61,7 +69,13 @@ export const signupSchema = z.object({
     ])
     .optional()
     .default([])
-});
+}).refine(
+  (data) => data.password === data.confirmPassword,
+  {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  }
+);
 
 export const loginSchema = z.object({
   email: emailSchema,

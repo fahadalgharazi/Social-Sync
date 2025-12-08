@@ -5,6 +5,8 @@ import fetch from 'node-fetch';
 import ngeohash from 'ngeohash';
 import { validate } from '../middlewares/validate.js';
 import { signupSchema, loginSchema } from '../validators/auth.validator.js';
+import { sanitizeBio, sanitizeInterests, sanitizeUsername } from '../utils/sanitize.js';
+import { authLimiter } from '../middlewares/rateLimiter.js';
 
 const router = Router();
 async function resolveZipCode(zip) {
@@ -38,28 +40,43 @@ async function resolveZipCode(zip) {
 }
 
 
-router.post('/signup', validate(signupSchema), async (req, res, next) => {
+router.post('/signup', authLimiter, validate(signupSchema), async (req, res, next) => {
   try {
     // normalized and validated
     const {
-      email,      
-      password,   
-      firstName,  
-      lastName,   
-      zip,        
-      gender,     
-      bio,        
-      interests   
+      email,
+      password,
+      firstName,
+      lastName,
+      username,
+      zip,
+      gender,
+      bio,
+      interests
     } = req.body;
 
-    // 1. Create auth user in Supabase
+    // 1. Check if username already exists
+    const { data: existingUsername } = await supabaseAdmin
+      .from('user_data')
+      .select('username')
+      .eq('username', username)
+      .single();
+
+    if (existingUsername) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username already taken',
+        errors: { username: 'This username is already in use' }
+      });
+    }
+
+    // 2. Create auth user in Supabase
     const { data: authData, error: authError } = await supabaseAnon.auth.signUp({
       email,
       password
     });
 
     if (authError) {
-      console.error('[SIGNUP] Supabase auth error:', authError);
       return res.status(400).json({
         success: false,
         message: authError.message || 'Failed to create account'
@@ -74,19 +91,18 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
       });
     }
 
-    // 2. Resolve ZIP code to geographic data
+    // 3. Resolve ZIP code to geographic data
     let geoData;
     try {
       geoData = await resolveZipCode(zip);
     } catch (geoError) {
-      console.error('[SIGNUP] ZIP resolution error:', geoError);
       return res.status(400).json({
         success: false,
         message: geoError.message
       });
     }
 
-    // 3. Create user record in custom users table
+    // 4. Create user record in custom users table
     const { error: userInsertError } = await supabaseAdmin
       .from('users')
       .insert([{
@@ -96,59 +112,58 @@ router.post('/signup', validate(signupSchema), async (req, res, next) => {
       }]);
 
     if (userInsertError) {
-      console.error('[SIGNUP] User insert error:', userInsertError);
       return res.status(400).json({
         success: false,
         message: 'Failed to save user record'
       });
     }
 
-    // 4. Create user profile data
+    // 5. Create user profile data (with sanitization)
     const { error: profileError } = await supabaseAdmin
       .from('user_data')
       .upsert([{
         id: user.id,
         first_name: firstName,
         last_name: lastName,
+        username: sanitizeUsername(username),
         gender: gender || null,
-        bio: bio || null,
+        bio: bio ? sanitizeBio(bio) : null,
         city: geoData.city,
         state: geoData.state,
         zipcode: zip,
         latitude: geoData.lat,
         longitude: geoData.lng,
         geohash: geoData.geohash,
-        interests: interests,
+        interests: interests ? sanitizeInterests(interests) : null,
         created_at: new Date().toISOString()
       }], { onConflict: 'id' });
 
     if (profileError) {
-      console.error('[SIGNUP] Profile insert error:', profileError);
       return res.status(400).json({
         success: false,
         message: 'Failed to save user profile'
       });
     }
 
-    // 5. Return success response
+    // 6. Return success response
     return res.status(201).json({
       success: true,
       message: 'Account created successfully',
       user: {
         id: user.id,
-        email: email
+        email: email,
+        username: username
       }
     });
 
   } catch (error) {
-    console.error('[SIGNUP] Unexpected error:', error);
     return next(error);
   }
 });
 
 
 
-router.post('/login', validate(loginSchema), async (req, res, next) => {
+router.post('/login', authLimiter, validate(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -189,7 +204,6 @@ router.post('/login', validate(loginSchema), async (req, res, next) => {
     });
 
   } catch (error) {
-    console.error('[LOGIN] Unexpected error:', error);
     return next(error);
   }
 });
@@ -224,11 +238,30 @@ router.get('/me', async (req, res) => {
     });
   }
 
+  // Fetch user profile data
+  const { data: userData, error: userError } = await supabaseAdmin
+    .from('user_data')
+    .select('id, username, first_name, last_name, bio, city, state, profile_picture_url')
+    .eq('id', data.user.id)
+    .single();
+
+  if (userError) {
+    // Return basic user data if profile fetch fails
+    return res.json({
+      success: true,
+      user: {
+        id: data.user.id,
+        email: data.user.email
+      }
+    });
+  }
+
   return res.json({
     success: true,
     user: {
       id: data.user.id,
-      email: data.user.email
+      email: data.user.email,
+      ...userData
     }
   });
 });
